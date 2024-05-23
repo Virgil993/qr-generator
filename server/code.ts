@@ -1,14 +1,21 @@
 import { CodeModel } from "./models/code";
-import { GenezioAuth, GenezioDeploy, GnzContext } from "@genezio/types";
-import { DataTypes, Sequelize } from "sequelize";
-import pg from "pg";
+import {
+  GenezioAuth,
+  GenezioDeploy,
+  GenezioHttpRequest,
+  GenezioHttpResponse,
+  GenezioMethod,
+  GnzContext,
+} from "@genezio/types";
+import { connectDb, initTables, syncDb } from "./db/connect";
+import { TrackingModel } from "./models/tracking";
 
 const red_color = "\x1b[31m%s\x1b[0m";
 const missing_env_error =
   "ERROR: Your POSTGRES_URL environment variable is not properly set, go to https://genezio.com/docs/features/databases to learn how to create a free tier postgres database for your project";
 
 export type Code = {
-  codeId: number;
+  codeId: string;
   title: string;
   ownerId: string;
   codeText: string;
@@ -55,40 +62,10 @@ export class CodeService {
         console.log(red_color, missing_env_error);
         return;
       }
-      // Initialize the database connection manager
-      const sequelize = new Sequelize(process.env.POSTGRES_URL || "", {
-        dialect: "postgres",
-        dialectModule: pg,
-        define: {
-          timestamps: false, // This disables the created_at and updated_at columns
-        },
-        dialectOptions: {
-          ssl: {
-            require: true, // Use SSL with the 'require' option
-          },
-        },
-      });
-      // Intialize the CodeModel
-      CodeModel.init(
-        {
-          codeId: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-          },
-          title: DataTypes.STRING(512),
-          ownerId: DataTypes.STRING(512),
-          codeText: DataTypes.STRING(1024),
-          date: DataTypes.DATE,
-        },
-
-        {
-          sequelize,
-          modelName: "CodeModel",
-          tableName: "codes",
-        }
-      );
-      sequelize.sync();
-    } catch (err: any) {
+      const db = connectDb();
+      initTables(db);
+      syncDb(db);
+    } catch (err) {
       console.log(
         "\x1b[33m%s\x1b[0m",
         "WARNING: Check if your environment variables are correctly set"
@@ -97,19 +74,6 @@ export class CodeService {
     }
   }
 
-  /**
-   * Method that returns the (max userId) + 1 from the database
-   * or 0 if there are no users in the database
-   *
-   * @returns a number reprezenting the max id in the table
-   */
-  async #generateUniqueId(): Promise<number> {
-    const maxId: number = await CodeModel.max("codeId");
-    if (maxId == null) {
-      return 0;
-    }
-    return maxId + 1;
-  }
   /**
    * Method that returns all codes for the authentficated user.
    * Only authenticated users with a valid token can access this method.
@@ -138,8 +102,8 @@ export class CodeService {
     let codes;
     try {
       codes = await CodeModel.findAll({ where: { ownerId: ownerId } });
-    } catch (error: any) {
-      return { success: false, codes: [], err: error.toString() };
+    } catch (error) {
+      return { success: false, codes: [], err: error?.toString() };
     }
 
     return { success: true, codes: codes };
@@ -175,22 +139,52 @@ export class CodeService {
       };
     let code;
     try {
-      var maxId = await this.#generateUniqueId();
-
       code = await CodeModel.create({
-        codeId: maxId,
         title: title,
         codeText: codeText,
         ownerId: ownerId,
         date: new Date(),
       });
-    } catch (error: any) {
-      return { success: false, err: error.toString() };
+    } catch (error) {
+      return { success: false, err: error?.toString() };
     }
 
     return {
       success: true,
       code: code,
+    };
+  }
+
+  @GenezioMethod({ type: "http" })
+  async trackCode(req: GenezioHttpRequest): Promise<GenezioHttpResponse> {
+    if (!req.queryStringParameters || !req.queryStringParameters.codeId) {
+      return {
+        statusCode: "400",
+        body: "Missing codeId parameter in the request",
+      };
+    }
+    const codeId = req.queryStringParameters.codeId;
+    console.log(`Tracking code with id ${codeId}`);
+    const code = await CodeModel.findOne({ where: { codeId: codeId } });
+    if (!code) {
+      return {
+        statusCode: "404",
+        body: "Code not found",
+      };
+    }
+    const sourceIp = req.http.sourceIp;
+    await TrackingModel.create({
+      codeId: codeId,
+      sourceIp: sourceIp,
+      date: new Date(),
+    });
+
+    return {
+      statusCode: "302",
+      body: "Code tracked successfully",
+      headers: {
+        Location: code.codeText,
+      },
     };
   }
 
@@ -209,7 +203,7 @@ export class CodeService {
   @GenezioAuth()
   async updateCode(
     context: GnzContext,
-    id: number,
+    id: string,
     title: string,
     codeText: string
   ): Promise<UpdateCodeResponse> {
@@ -243,8 +237,8 @@ export class CodeService {
         codeText: codeText,
       });
       await code.save();
-    } catch (error: any) {
-      return { success: false, err: error.toString() };
+    } catch (error) {
+      return { success: false, err: error?.toString() };
     }
 
     return { success: true };
@@ -263,7 +257,7 @@ export class CodeService {
   @GenezioAuth()
   async deleteCode(
     context: GnzContext,
-    id: number
+    id: string
   ): Promise<DeleteCodeResponse> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);
@@ -288,8 +282,8 @@ export class CodeService {
     }
     try {
       await code.destroy();
-    } catch (error: any) {
-      return { success: false, err: error.toString() };
+    } catch (error) {
+      return { success: false, err: error?.toString() };
     }
 
     return { success: true };

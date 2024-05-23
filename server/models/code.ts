@@ -1,7 +1,7 @@
 import { Model } from "sequelize";
 
 export class CodeModel extends Model {
-  codeId!: number;
+  codeId!: string;
   title!: string;
   ownerId!: string;
   codeText!: string;

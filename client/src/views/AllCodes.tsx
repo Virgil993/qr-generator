@@ -23,6 +23,7 @@ export default function AllCodes() {
 
   const apiURL =
     "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=";
+  const trackingURL = "http://127.0.0.1:8083/CodeService/trackCode";
   const [codes, setCodes] = useState<Code[]>([]);
   const [codesImages, setCodesImages] = useState<string[]>([]);
   const [modalAddCode, setModalAddCode] = useState(false);
@@ -43,7 +44,9 @@ export default function AllCodes() {
     CodeService.getAllCodes().then((result: GetCodesResponse) => {
       if (result.success) {
         setCodes(result.codes);
-        const images = result.codes.map((code) => apiURL + code.codeText);
+        const images = result.codes.map(
+          (code) => apiURL + trackingURL + "?codeId=" + code.codeId
+        );
         setCodesImages(images);
       } else {
         if (result.err) {
@@ -59,7 +62,7 @@ export default function AllCodes() {
     });
   }, []);
 
-  async function handleDelete(id: number) {
+  async function handleDelete(id: string) {
     const res = await CodeService.deleteCode(id);
     if (res.success) {
       setCodes(codes.filter((code) => code.codeId !== id));
@@ -100,7 +103,10 @@ export default function AllCodes() {
     const res = await CodeService.createCode(codeTitle, codeText);
     if (res && res.success) {
       setCodes([...codes, res.code!]);
-      setCodesImages([...codesImages, apiURL + res.code!.codeText]);
+      setCodesImages([
+        ...codesImages,
+        apiURL + trackingURL + "?codeId=" + res.code!.codeId,
+      ]);
       setCodeTitle("");
       setCodeText("");
       setGeneratedCode("");
@@ -116,7 +122,7 @@ export default function AllCodes() {
     }
   }
 
-  async function handleDownload(id: number) {
+  async function handleDownload(id: string) {
     const code = codes.find((code) => code.codeId === id);
     if (code) {
       const response = await axios.get(
