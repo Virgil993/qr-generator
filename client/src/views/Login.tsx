@@ -3,12 +3,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "@genezio/auth";
 import { GenezioError } from "@genezio/types";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
 
   async function handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -19,7 +21,7 @@ export default function Login() {
 
     setError("");
 
-    await AuthService.getInstance()
+    const res = await AuthService.getInstance()
       .login(email, password)
       .catch((err) => {
         setError(
@@ -28,10 +30,28 @@ export default function Login() {
             ": " +
             (err as GenezioError).message
         );
-        return;
-      })
-      .then(() => navigate("/admin/all-tasks"));
+        return null;
+      });
+    if (res) {
+      navigate("/admin/all-codes");
+    }
   }
+
+  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
+    setGoogleLoginLoading(true);
+    try {
+      await AuthService.getInstance().googleRegistration(
+        credentialResponse.credential!
+      );
+
+      navigate("/admin/all-codes");
+    } catch (error) {
+      console.log("Login Failed", error);
+      alert("Login Failed");
+    }
+
+    setGoogleLoginLoading(false);
+  };
 
   return (
     <Container className="mt-5">
@@ -65,6 +85,22 @@ export default function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
+                  <div className="mb-3">
+                    {googleLoginLoading ? (
+                      <>Loading...</>
+                    ) : (
+                      <GoogleLogin
+                        onSuccess={(credentialResponse) => {
+                          handleGoogleLogin(credentialResponse);
+                        }}
+                        width={300}
+                        onError={() => {
+                          console.log("Login Failed");
+                          alert("Login Failed");
+                        }}
+                      />
+                    )}
+                  </div>
                   <div className="text-left">
                     <Button
                       type="submit"
@@ -76,7 +112,8 @@ export default function Login() {
                   </div>
                   <div className="mt-2">
                     <span>
-                      Don't have an account? <a href="/register">Register</a>
+                      Don't have an account?{" "}
+                      <a href="/auth/register">Register</a>
                     </span>
                   </div>
                 </form>

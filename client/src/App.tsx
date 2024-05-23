@@ -9,45 +9,23 @@ import Login from "./views/Login";
 import Register from "./views/Register";
 import AllCodes from "./views/AllCodes";
 import Auth from "./layouts/Auth";
+import Admin from "./layouts/Admin";
 
 export default function App() {
   return (
     <Router>
       <Routes>
+        <Route path={`/auth/login`} element={<Auth element={<Login />} />} />
         <Route
-          path="/login"
-          element={
-            <Auth
-              authetificatedRedirect="/admin/all-codes"
-              unauthetificatedRedirect="/login"
-            >
-              <Login />
-            </Auth>
-          }
+          path={`/auth/register`}
+          element={<Auth element={<Register />} />}
         />
         <Route
-          path="/register"
-          element={
-            <Auth
-              authetificatedRedirect="/admin/all-codes"
-              unauthetificatedRedirect="/register"
-            >
-              <Register />
-            </Auth>
-          }
+          path={`/admin/all-codes`}
+          element={<Admin element={<AllCodes />} />}
         />
-        <Route
-          path="/admin/all-codes"
-          element={
-            <Auth
-              authetificatedRedirect="/admin/all-codes"
-              unauthetificatedRedirect="/login"
-            >
-              <AllCodes />
-            </Auth>
-          }
-        />
-        <Route path="*" element={<Navigate replace to="/login" />} />
+
+        <Route path="*" element={<Navigate to="/auth/login" />} />
       </Routes>
     </Router>
   );
