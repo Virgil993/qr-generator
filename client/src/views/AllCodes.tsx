@@ -13,17 +13,19 @@ import {
   Alert,
 } from "reactstrap";
 import { useState, useEffect } from "react";
-import { CodeService, Code, GetCodesResponse } from "@genezio-sdk/qr-generator";
+import { CodeService, Code } from "@genezio-sdk/qr-generator";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "@genezio/auth";
-import axios from "axios";
+import QRcode from "qrcode";
+import validator from "validator";
 
 export default function AllCodes() {
   const navigate = useNavigate();
 
-  const apiURL =
-    "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=";
-  const trackingURL = "http://127.0.0.1:8083/CodeService/trackCode";
+  // const trackingURL = "http://127.0.0.1:8083/CodeService/trackCode";
+  const trackingURL = import.meta.env.VITE_TRACKING_URL
+    ? import.meta.env.VITE_TRACKING_URL
+    : "";
   const [codes, setCodes] = useState<Code[]>([]);
   const [codesImages, setCodesImages] = useState<string[]>([]);
   const [modalAddCode, setModalAddCode] = useState(false);
@@ -31,9 +33,11 @@ export default function AllCodes() {
     setModalAddCode(!modalAddCode);
     setCodeTitle("");
   };
+  const [codesLoading, setCodesLoading] = useState(true);
 
   const [errorTitle, setErrorTitle] = useState("");
   const [errorText, setErrorText] = useState("");
+  const [errorModal, setErrorModal] = useState("");
   const [alertErrorMessage, setAlertErrorMessage] = useState<string>("");
 
   const [codeTitle, setCodeTitle] = useState("");
@@ -41,53 +45,73 @@ export default function AllCodes() {
   const [generatedCode, setGeneratedCode] = useState("");
 
   useEffect(() => {
-    CodeService.getAllCodes().then((result: GetCodesResponse) => {
-      if (result.success) {
+    const fetchCodes = async () => {
+      setCodesLoading(true);
+      const result = await CodeService.getAllCodes().catch((error) => {
+        setAlertErrorMessage(
+          `Unexpected error: ${
+            error.message
+              ? error.message
+              : "Please check the backend logs in the project dashboard - https://app.genez.io."
+          }`
+        );
+        return null;
+      });
+      if (result && result.success) {
         setCodes(result.codes);
-        const images = result.codes.map(
-          (code) => apiURL + trackingURL + "?codeId=" + code.codeId
+        const images = await Promise.all(
+          result.codes.map(async (code) => {
+            const res = await QRcode.toDataURL(
+              trackingURL + "?codeId=" + code.codeId
+            );
+            return res;
+          })
         );
         setCodesImages(images);
-      } else {
-        if (result.err) {
-          setAlertErrorMessage(
-            `Unexpected error: ${
-              result.err
-                ? result.err
-                : "Please check the backend logs in the project dashboard - https://app.genez.io."
-            }`
-          );
-        }
+        setCodesLoading(false);
       }
-    });
-  }, []);
+    };
+    if (codesLoading) {
+      fetchCodes();
+    }
+  }, [codesLoading, codes, codesImages, alertErrorMessage, trackingURL]);
 
   async function handleDelete(id: string) {
-    const res = await CodeService.deleteCode(id);
-    if (res.success) {
-      setCodes(codes.filter((code) => code.codeId !== id));
-      setCodesImages(
-        codesImages.filter((_, index) => codes[index].codeId !== id)
-      );
-    } else {
-      navigate(0);
-      setAlertErrorMessage(
-        `Unexpected error: ${
-          res.err
-            ? res.err
-            : "Please check the backend logs in the project dashboard - https://app.genez.io."
-        }`
-      );
-    }
+    await CodeService.deleteCode(id)
+      .then(() => {
+        setCodes(codes.filter((code) => code.codeId !== id));
+        setCodesImages(
+          codesImages.filter((_, index) => codes[index].codeId !== id)
+        );
+      })
+      .catch((error) => {
+        navigate(0);
+        setAlertErrorMessage(
+          `Unexpected error: ${
+            error.message
+              ? error.message
+              : "Please check the backend logs in the project dashboard - https://app.genez.io."
+          }`
+        );
+      });
   }
 
-  function generateCode(event: React.MouseEvent<HTMLButtonElement>) {
+  async function generateCode(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     if (!codeText) {
       setErrorText("Text is mandatory");
       return;
     }
-    setGeneratedCode(apiURL + codeText);
+    const isValidUrl = validator.isURL(codeText, {
+      protocols: ["http", "https"],
+      require_protocol: true,
+    });
+    if (!isValidUrl) {
+      setErrorModal("The code text is not a valid URL");
+      return;
+    }
+    const generatedCode = await QRcode.toDataURL(codeText);
+    setGeneratedCode(generatedCode);
   }
 
   async function handleAdd(e: React.MouseEvent<HTMLButtonElement>) {
@@ -100,40 +124,37 @@ export default function AllCodes() {
       setErrorText("Text is mandatory");
       return;
     }
-    const res = await CodeService.createCode(codeTitle, codeText);
+    const res = await CodeService.createCode(codeTitle, codeText).catch(
+      (error) => {
+        setErrorModal(
+          `${
+            error.message
+              ? error.message
+              : "Unexpected error: Please check the backend logs in the project dashboard - https://app.genez.io."
+          }`
+        );
+        return null;
+      }
+    );
     if (res && res.success) {
+      const generatedCode = await QRcode.toDataURL(
+        trackingURL + "?codeId=" + res.code!.codeId
+      );
       setCodes([...codes, res.code!]);
-      setCodesImages([
-        ...codesImages,
-        apiURL + trackingURL + "?codeId=" + res.code!.codeId,
-      ]);
+      setCodesImages([...codesImages, generatedCode]);
       setCodeTitle("");
       setCodeText("");
       setGeneratedCode("");
       toggleModalAddCode();
-    } else {
-      setAlertErrorMessage(
-        `Unexpected error: ${
-          res.err
-            ? res.err
-            : "Please check the backend logs in the project dashboard - https://app.genez.io."
-        }`
-      );
     }
   }
 
   async function handleDownload(id: string) {
     const code = codes.find((code) => code.codeId === id);
     if (code) {
-      const response = await axios.get(
-        apiURL + code.codeText + "&size=300x300",
-        {
-          responseType: "blob",
-        }
+      const url = await QRcode.toDataURL(
+        trackingURL + "?codeId=" + code.codeId
       );
-      // Create a temporary URL for the Blob object
-      const url = URL.createObjectURL(response.data);
-
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;
@@ -141,9 +162,6 @@ export default function AllCodes() {
 
       // Programmatically click the anchor element to trigger the download
       a.click();
-
-      // Clean up by revoking the temporary URL
-      URL.revokeObjectURL(url);
     }
   }
 
@@ -182,9 +200,11 @@ export default function AllCodes() {
                 onChange={(e) => {
                   setCodeText(e.target.value);
                   setErrorText("");
+                  setErrorModal("");
                 }}
               />
             </div>
+            <span className="text-danger">{errorModal}</span>
             {generatedCode ? (
               <div className="mb-3 d-flex flex-column">
                 <label className="mb-2">Code</label>
@@ -218,33 +238,41 @@ export default function AllCodes() {
               <h3>All Codes</h3>
 
               <Row>
-                <Col sm="12">
-                  {codes.map((code, index) => (
-                    <div key={code.codeId} className="mb-3">
-                      <p className="mb-0 d-flex flex-column">
-                        <span className="h4">Code title: {code.title}</span>
-                        <span className="h4">Code text: {code.codeText}</span>
-                      </p>
-                      <div className="mb-3">
-                        <img src={codesImages[index]} alt="N/A" />
+                {codesLoading ? (
+                  <>Loading...</>
+                ) : (
+                  <Col sm="12">
+                    {codes.map((code, index) => (
+                      <div key={code.codeId} className="mb-3">
+                        <p className="mb-0 d-flex flex-column">
+                          <span className="h4">Code title: {code.title}</span>
+                          <span className="h4">Code text: {code.codeText}</span>
+                        </p>
+                        <div className="mb-3">
+                          <img
+                            src={codesImages[index]}
+                            id={code.codeId}
+                            alt="N/A"
+                          />
+                        </div>
+                        <ButtonGroup aria-label="Basic example">
+                          <Button
+                            color="danger"
+                            onClick={() => handleDelete(code.codeId)}
+                          >
+                            Delete Code
+                          </Button>
+                          <Button
+                            color="primary"
+                            onClick={() => handleDownload(code.codeId)}
+                          >
+                            Download Code
+                          </Button>
+                        </ButtonGroup>
                       </div>
-                      <ButtonGroup aria-label="Basic example">
-                        <Button
-                          color="danger"
-                          onClick={() => handleDelete(code.codeId)}
-                        >
-                          Delete Code
-                        </Button>
-                        <Button
-                          color="primary"
-                          onClick={() => handleDownload(code.codeId)}
-                        >
-                          Download Code
-                        </Button>
-                      </ButtonGroup>
-                    </div>
-                  ))}
-                </Col>
+                    ))}
+                  </Col>
+                )}
 
                 <Col sm="3" className="mt-4">
                   <Button

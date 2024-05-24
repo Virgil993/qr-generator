@@ -9,6 +9,7 @@ import {
 } from "@genezio/types";
 import { connectDb, initTables, syncDb } from "./db/connect";
 import { TrackingModel } from "./models/tracking";
+import validator from "validator";
 
 const red_color = "\x1b[31m%s\x1b[0m";
 const missing_env_error =
@@ -25,23 +26,11 @@ export type Code = {
 export type GetCodesResponse = {
   success: boolean;
   codes: Code[];
-  err?: string;
 };
 
 export type GetCodeResponse = {
   success: boolean;
-  code?: Code;
-  err?: string;
-};
-
-export type UpdateCodeResponse = {
-  success: boolean;
-  err?: string;
-};
-
-export type DeleteCodeResponse = {
-  success: boolean;
-  err?: string;
+  code: Code;
 };
 
 /**
@@ -87,24 +76,22 @@ export class CodeService {
   async getAllCodes(context: GnzContext): Promise<GetCodesResponse> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);
-      return { success: false, codes: [], err: missing_env_error };
+      throw new Error(missing_env_error);
     }
     const ownerId = context.user?.userId;
-    if (!ownerId)
-      return {
-        success: false,
-        codes: [],
-        err: "User not authentificated or token has expired",
-      };
+    if (!ownerId) {
+      throw new Error("User not authentificated or token has expired");
+    }
+
     console.log(
       `Get all codes by user request received with userID ${context.user?.userId}`
     );
-    let codes;
-    try {
-      codes = await CodeModel.findAll({ where: { ownerId: ownerId } });
-    } catch (error) {
-      return { success: false, codes: [], err: error?.toString() };
-    }
+    const codes = await CodeModel.findAll({
+      where: { ownerId: ownerId },
+    }).catch((error) => {
+      console.log(error);
+      throw new Error("Error getting codes");
+    });
 
     return { success: true, codes: codes };
   }
@@ -128,27 +115,31 @@ export class CodeService {
   ): Promise<GetCodeResponse> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);
-      return { success: false, err: missing_env_error };
+      throw new Error(missing_env_error);
     }
     console.log(`Create code request received with title ${title}`);
     const ownerId = context.user?.userId;
-    if (!ownerId)
-      return {
-        success: false,
-        err: "User not authentificated or token has expired",
-      };
-    let code;
-    try {
-      code = await CodeModel.create({
-        title: title,
-        codeText: codeText,
-        ownerId: ownerId,
-        date: new Date(),
-      });
-    } catch (error) {
-      return { success: false, err: error?.toString() };
+    if (!ownerId) {
+      throw new Error("User not authentificated or token has expired");
     }
 
+    const isValidUrl = validator.isURL(codeText, {
+      protocols: ["http", "https"],
+      require_protocol: true,
+    });
+    if (!isValidUrl) {
+      throw new Error("The code text is not a valid URL");
+    }
+
+    const code = await CodeModel.create({
+      title: title,
+      codeText: codeText,
+      ownerId: ownerId,
+      date: new Date(),
+    }).catch((error) => {
+      console.log(error);
+      throw new Error("Error creating code");
+    });
     return {
       success: true,
       code: code,
@@ -173,11 +164,20 @@ export class CodeService {
       };
     }
     const sourceIp = req.http.sourceIp;
-    await TrackingModel.create({
+    const res = await TrackingModel.create({
       codeId: codeId,
       sourceIp: sourceIp,
       date: new Date(),
+    }).catch((error) => {
+      console.log(error);
+      return null;
     });
+    if (!res) {
+      return {
+        statusCode: "500",
+        body: "Error tracking code",
+      };
+    }
 
     return {
       statusCode: "302",
@@ -206,29 +206,29 @@ export class CodeService {
     id: string,
     title: string,
     codeText: string
-  ): Promise<UpdateCodeResponse> {
+  ): Promise<void> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);
-      return { success: false, err: missing_env_error };
+      throw new Error(missing_env_error);
     }
     const ownerId = context.user?.userId;
-    if (!ownerId)
-      return {
-        success: false,
-        err: "User not authentificated or token has expired",
-      };
+    if (!ownerId) {
+      throw new Error("User not authentificated or token has expired");
+    }
     console.log(
       `Update code request received with id ${id} with title ${title} and code text ${codeText}`
     );
 
     const code = await CodeModel.findOne({
       where: { codeId: id, ownerId: ownerId },
+    }).catch((error) => {
+      console.log(error);
+      throw new Error("Error getting code");
     });
     if (!code) {
-      return {
-        success: false,
-        err: "code does not exist or the user doesn't have access to it",
-      };
+      throw new Error(
+        "Code does not exist or the user doesn't have access to it"
+      );
     }
 
     try {
@@ -238,10 +238,9 @@ export class CodeService {
       });
       await code.save();
     } catch (error) {
-      return { success: false, err: error?.toString() };
+      console.log(error);
+      throw new Error("Error updating code");
     }
-
-    return { success: true };
   }
 
   /**
@@ -255,37 +254,33 @@ export class CodeService {
    * @returns An object containing one property: { success: true }
    */
   @GenezioAuth()
-  async deleteCode(
-    context: GnzContext,
-    id: string
-  ): Promise<DeleteCodeResponse> {
+  async deleteCode(context: GnzContext, id: string): Promise<void> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);
-      return { success: false, err: missing_env_error };
+      throw new Error(missing_env_error);
     }
     const ownerId = context.user?.userId;
-    if (!ownerId)
-      return {
-        success: false,
-        err: "User not authentificated or token has expired",
-      };
+    if (!ownerId) {
+      throw new Error("User not authentificated or token has expired");
+    }
+
     console.log(`Delete code with id ${id} request received`);
 
     const code = await CodeModel.findOne({
       where: { codeId: id, ownerId: ownerId },
+    }).catch((error) => {
+      console.log(error);
+      throw new Error("Error getting code");
     });
     if (!code) {
-      return {
-        success: false,
-        err: "code does not exist or the user doesn't have access to it",
-      };
-    }
-    try {
-      await code.destroy();
-    } catch (error) {
-      return { success: false, err: error?.toString() };
+      throw new Error(
+        "Code does not exist or the user doesn't have access to it"
+      );
     }
 
-    return { success: true };
+    await code.destroy().catch((error) => {
+      console.log(error);
+      throw new Error("Error deleting code");
+    });
   }
 }
