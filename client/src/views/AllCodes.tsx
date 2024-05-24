@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthService } from "@genezio/auth";
 import QRcode from "qrcode";
 import validator from "validator";
+import { ClockLoader } from "react-spinners";
 
 export default function AllCodes() {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export default function AllCodes() {
     setCodeTitle("");
   };
   const [codesLoading, setCodesLoading] = useState(true);
+  const [deleteCodeLoading, setDeleteCodeLoading] = useState(false);
+  const [addCodeLoading, setAddCodeLoading] = useState(false);
 
   const [errorTitle, setErrorTitle] = useState("");
   const [errorText, setErrorText] = useState("");
@@ -77,6 +80,7 @@ export default function AllCodes() {
   }, [codesLoading, codes, codesImages, alertErrorMessage, trackingURL]);
 
   async function handleDelete(id: string) {
+    setDeleteCodeLoading(true);
     await CodeService.deleteCode(id)
       .then(() => {
         setCodes(codes.filter((code) => code.codeId !== id));
@@ -94,6 +98,7 @@ export default function AllCodes() {
           }`
         );
       });
+    setDeleteCodeLoading(false);
   }
 
   async function generateCode(event: React.MouseEvent<HTMLButtonElement>) {
@@ -124,6 +129,7 @@ export default function AllCodes() {
       setErrorText("Text is mandatory");
       return;
     }
+    setAddCodeLoading(true);
     const res = await CodeService.createCode(codeTitle, codeText).catch(
       (error) => {
         setErrorModal(
@@ -147,6 +153,7 @@ export default function AllCodes() {
       setGeneratedCode("");
       toggleModalAddCode();
     }
+    setAddCodeLoading(false);
   }
 
   async function handleDownload(id: string) {
@@ -223,7 +230,17 @@ export default function AllCodes() {
               Generate code
             </Button>
             <Button color="primary" onClick={(e) => handleAdd(e)} type="submit">
-              Add
+              {addCodeLoading ? (
+                <ClockLoader
+                  color={"black"}
+                  loading={addCodeLoading}
+                  size={26}
+                  aria-label="Loading Spinner"
+                  data-testid="loader"
+                />
+              ) : (
+                <>Add Code</>
+              )}
             </Button>
             <Button color="secondary" onClick={toggleModalAddCode}>
               Cancel
@@ -237,10 +254,18 @@ export default function AllCodes() {
             <Col sm="11">
               <h3>All Codes</h3>
 
-              <Row>
-                {codesLoading ? (
-                  <>Loading...</>
-                ) : (
+              {codesLoading ? (
+                <Row className="mt-5 ms-5 mb-3">
+                  <ClockLoader
+                    color={"blue"}
+                    loading={codesLoading}
+                    size={100}
+                    aria-label="Loading Spinner"
+                    data-testid="loader"
+                  />
+                </Row>
+              ) : (
+                <Row>
                   <Col sm="12">
                     {codes.map((code, index) => (
                       <div key={code.codeId} className="mb-3">
@@ -260,7 +285,17 @@ export default function AllCodes() {
                             color="danger"
                             onClick={() => handleDelete(code.codeId)}
                           >
-                            Delete Code
+                            {deleteCodeLoading ? (
+                              <ClockLoader
+                                color={"black"}
+                                loading={deleteCodeLoading}
+                                size={30}
+                                aria-label="Loading Spinner"
+                                data-testid="loader"
+                              />
+                            ) : (
+                              <>Delete Code</>
+                            )}
                           </Button>
                           <Button
                             color="primary"
@@ -272,19 +307,19 @@ export default function AllCodes() {
                       </div>
                     ))}
                   </Col>
-                )}
 
-                <Col sm="3" className="mt-4">
-                  <Button
-                    color="primary"
-                    onClick={() => {
-                      toggleModalAddCode();
-                    }}
-                  >
-                    Add Code
-                  </Button>
-                </Col>
-              </Row>
+                  <Col sm="3" className="mt-4">
+                    <Button
+                      color="primary"
+                      onClick={() => {
+                        toggleModalAddCode();
+                      }}
+                    >
+                      Add Code
+                    </Button>
+                  </Col>
+                </Row>
+              )}
             </Col>
             <Col sm="1" className="text-right">
               <Button
