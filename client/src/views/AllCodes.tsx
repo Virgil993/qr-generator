@@ -303,6 +303,14 @@ export default function AllCodes() {
                           >
                             Download Code
                           </Button>
+                          <Button
+                            color="success"
+                            onClick={() => {
+                              navigate(`/admin/view-code/${code.codeId}`);
+                            }}
+                          >
+                            View Code
+                          </Button>
                         </ButtonGroup>
                       </div>
                     ))}

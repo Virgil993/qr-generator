@@ -1,14 +1,6 @@
 import { CodeModel } from "./models/code";
-import {
-  GenezioAuth,
-  GenezioDeploy,
-  GenezioHttpRequest,
-  GenezioHttpResponse,
-  GenezioMethod,
-  GnzContext,
-} from "@genezio/types";
+import { GenezioAuth, GenezioDeploy, GnzContext } from "@genezio/types";
 import { connectDb, initTables, syncDb } from "./db/connect";
-import { TrackingModel } from "./models/tracking";
 import validator from "validator";
 
 const red_color = "\x1b[31m%s\x1b[0m";
@@ -146,46 +138,22 @@ export class CodeService {
     };
   }
 
-  @GenezioMethod({ type: "http" })
-  async trackCode(req: GenezioHttpRequest): Promise<GenezioHttpResponse> {
-    if (!req.queryStringParameters || !req.queryStringParameters.codeId) {
-      return {
-        statusCode: "400",
-        body: "Missing codeId parameter in the request",
-      };
+  async getCode(codeId: string): Promise<Code | null> {
+    if (!process.env.POSTGRES_URL) {
+      console.log(red_color, missing_env_error);
+      throw new Error(missing_env_error);
     }
-    const codeId = req.queryStringParameters.codeId;
-    console.log(`Tracking code with id ${codeId}`);
-    const code = await CodeModel.findOne({ where: { codeId: codeId } });
+    const code = await CodeModel.findOne({ where: { codeId: codeId } }).catch(
+      (error) => {
+        console.log(error);
+        throw new Error("Error getting code");
+      }
+    );
     if (!code) {
-      return {
-        statusCode: "404",
-        body: "Code not found",
-      };
-    }
-    const sourceIp = req.http.sourceIp;
-    const res = await TrackingModel.create({
-      codeId: codeId,
-      sourceIp: sourceIp,
-      date: new Date(),
-    }).catch((error) => {
-      console.log(error);
-      return null;
-    });
-    if (!res) {
-      return {
-        statusCode: "500",
-        body: "Error tracking code",
-      };
+      throw new Error("Code not found");
     }
 
-    return {
-      statusCode: "302",
-      body: "Code tracked successfully",
-      headers: {
-        Location: code.codeText,
-      },
-    };
+    return code;
   }
 
   /**
@@ -206,7 +174,7 @@ export class CodeService {
     id: string,
     title: string,
     codeText: string
-  ): Promise<void> {
+  ): Promise<GetCodeResponse> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);
       throw new Error(missing_env_error);
@@ -237,6 +205,7 @@ export class CodeService {
         codeText: codeText,
       });
       await code.save();
+      return { success: true, code: code };
     } catch (error) {
       console.log(error);
       throw new Error("Error updating code");
