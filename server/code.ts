@@ -138,11 +138,27 @@ export class CodeService {
     };
   }
 
-  async getCode(codeId: string): Promise<Code | null> {
+  /**
+   * Method that returns a code for the authentficated user.
+   * Only authenticated users with a valid token can access this method.
+   *
+   * The method will be exported via SDK using genezio.
+   *
+   * @param {*} context The genezio context for the authentification session.
+   * @param {*} codeId The code's id.
+   * @returns The code object.
+   */
+  async getCode(context: GnzContext, codeId: string): Promise<Code | null> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);
       throw new Error(missing_env_error);
     }
+
+    const ownerId = context.user?.userId;
+    if (!ownerId) {
+      throw new Error("User not authentificated or token has expired");
+    }
+
     const code = await CodeModel.findOne({ where: { codeId: codeId } }).catch(
       (error) => {
         console.log(error);
