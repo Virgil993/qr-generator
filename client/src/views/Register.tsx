@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "@genezio/auth";
 import { GenezioError } from "@genezio/types";
-import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -12,7 +11,6 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setpasswordConfirmation] = useState("");
-  const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
 
   const [error, setError] = useState("");
 
@@ -43,22 +41,6 @@ export default function Register() {
       navigate("/auth/login");
     }
   }
-
-  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
-    setGoogleLoginLoading(true);
-    try {
-      await AuthService.getInstance().googleRegistration(
-        credentialResponse.credential!
-      );
-
-      navigate("/admin/all-codes");
-    } catch (error) {
-      console.log("Login Failed", error);
-      alert("Login Failed");
-    }
-
-    setGoogleLoginLoading(false);
-  };
 
   return (
     <Container className="mt-5">
@@ -111,23 +93,6 @@ export default function Register() {
                       value={passwordConfirmation}
                       onChange={(e) => setpasswordConfirmation(e.target.value)}
                     />
-                  </div>
-                  <div className="mb-3 ">
-                    {googleLoginLoading ? (
-                      <>Loading...</>
-                    ) : (
-                      <GoogleLogin
-                        onSuccess={(credentialResponse) => {
-                          handleGoogleLogin(credentialResponse);
-                        }}
-                        width={300}
-                        text="signup_with"
-                        onError={() => {
-                          console.log("Login Failed");
-                          alert("Login Failed");
-                        }}
-                      />
-                    )}
                   </div>
                   <div className="text-left">
                     <Button
