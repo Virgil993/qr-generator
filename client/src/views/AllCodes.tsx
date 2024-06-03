@@ -23,7 +23,6 @@ import { ClockLoader } from "react-spinners";
 export default function AllCodes() {
   const navigate = useNavigate();
 
-  // const trackingURL = "http://127.0.0.1:8083/CodeService/trackCode";
   const trackingURL = import.meta.env.VITE_TRACKING_URL
     ? import.meta.env.VITE_TRACKING_URL
     : "";

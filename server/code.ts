@@ -148,6 +148,7 @@ export class CodeService {
    * @param {*} codeId The code's id.
    * @returns The code object.
    */
+  @GenezioAuth()
   async getCode(context: GnzContext, codeId: string): Promise<Code | null> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);

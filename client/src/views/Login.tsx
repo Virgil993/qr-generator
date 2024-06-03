@@ -116,6 +116,12 @@ export default function Login() {
                       <a href="/auth/register">Register</a>
                     </span>
                   </div>
+                  <div className="mt-2">
+                    <span>
+                      Don't want to login?{" "}
+                      <a href="/auth/guest">Continue as guest</a>
+                    </span>
+                  </div>
                 </form>
               </div>
             </div>

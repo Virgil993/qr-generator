@@ -143,6 +143,12 @@ export default function Register() {
                       Already have an account? <a href="/auth/login">Login</a>
                     </span>
                   </div>
+                  <div className="mt-2">
+                    <span>
+                      Don't want to create an account?{" "}
+                      <a href="/auth/guest">Continue as guest</a>
+                    </span>
+                  </div>
                 </form>
               </div>
             </div>
