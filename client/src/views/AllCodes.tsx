@@ -19,6 +19,7 @@ import { AuthService } from "@genezio/auth";
 import QRcode from "qrcode";
 import validator from "validator";
 import { ClockLoader } from "react-spinners";
+import CodeCard from "../components/CodeCard";
 
 export default function AllCodes() {
   const navigate = useNavigate();
@@ -181,8 +182,10 @@ export default function AllCodes() {
         <ModalHeader toggle={toggleModalAddCode}>Add new code</ModalHeader>
         <form>
           <ModalBody>
-            <span className="text-danger">{errorTitle}</span>
-            <div className="mb-3">
+            <div className="text-center mb-3">
+              <span className="text-danger ">{errorTitle}</span>
+            </div>
+            <div className="d-flex flex-column align-items-center mb-3">
               <label>Code Title</label>
               <Input
                 className="form-control"
@@ -195,8 +198,10 @@ export default function AllCodes() {
                 }}
               />
             </div>
-            <span className="text-danger">{errorText}</span>
-            <div className="mb-3">
+            <div className="text-center mb-3">
+              <span className="text-danger">{errorText}</span>
+            </div>
+            <div className="d-flex flex-column align-items-center mb-3">
               <label>Code Text</label>
               <Input
                 className="form-control"
@@ -210,7 +215,9 @@ export default function AllCodes() {
                 }}
               />
             </div>
-            <span className="text-danger">{errorModal}</span>
+            <div className="text-center mb-3">
+              <span className="text-danger">{errorModal}</span>
+            </div>
             {generatedCode ? (
               <div className="mb-3 d-flex flex-column">
                 <label className="mb-2">Code</label>
@@ -249,10 +256,24 @@ export default function AllCodes() {
       </Modal>
       <Container className="mt-2">
         <Card className="p-4 mt-2">
+          <Row>
+            <Col xs="6" className="text-left">
+              <h1 className="text-left">All Codes</h1>
+            </Col>
+            <Col xs="6" className="text-end">
+              <Button
+                color="primary"
+                onClick={async () => {
+                  await AuthService.getInstance().logout();
+                  navigate("/login");
+                }}
+              >
+                Logout
+              </Button>
+            </Col>
+          </Row>
           <Row className="mt-2">
             <Col sm="11">
-              <h3>All Codes</h3>
-
               {codesLoading ? (
                 <Row className="mt-5 ms-5 mb-3">
                   <ClockLoader
@@ -264,80 +285,32 @@ export default function AllCodes() {
                   />
                 </Row>
               ) : (
-                <Row>
-                  <Col sm="12">
+                <>
+                  <Row>
                     {codes.map((code, index) => (
-                      <div key={code.codeId} className="mb-3">
-                        <p className="mb-0 d-flex flex-column">
-                          <span className="h4">Code title: {code.title}</span>
-                          <span className="h4">Code text: {code.codeText}</span>
-                        </p>
-                        <div className="mb-3">
-                          <img
-                            src={codesImages[index]}
-                            id={code.codeId}
-                            alt="N/A"
-                          />
-                        </div>
-                        <ButtonGroup aria-label="Basic example">
-                          <Button
-                            color="danger"
-                            onClick={() => handleDelete(code.codeId)}
-                          >
-                            {deleteCodeLoading ? (
-                              <ClockLoader
-                                color={"black"}
-                                loading={deleteCodeLoading}
-                                size={30}
-                                aria-label="Loading Spinner"
-                                data-testid="loader"
-                              />
-                            ) : (
-                              <>Delete Code</>
-                            )}
-                          </Button>
-                          <Button
-                            color="primary"
-                            onClick={() => handleDownload(code.codeId)}
-                          >
-                            Download Code
-                          </Button>
-                          <Button
-                            color="success"
-                            onClick={() => {
-                              navigate(`/admin/view-code/${code.codeId}`);
-                            }}
-                          >
-                            View Code
-                          </Button>
-                        </ButtonGroup>
-                      </div>
+                      <Col className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+                        <CodeCard
+                          codeText={code.codeText}
+                          codeTitle={code.title}
+                          photoUrl={codesImages[index]}
+                        />
+                      </Col>
                     ))}
-                  </Col>
-
-                  <Col sm="3" className="mt-4">
-                    <Button
-                      color="primary"
-                      onClick={() => {
-                        toggleModalAddCode();
-                      }}
-                    >
-                      Add Code
-                    </Button>
-                  </Col>
-                </Row>
+                  </Row>
+                  <Row className="mt-3">
+                    <Col sm="3" className="mt-4">
+                      <Button
+                        color="primary"
+                        onClick={() => {
+                          toggleModalAddCode();
+                        }}
+                      >
+                        Add Code
+                      </Button>
+                    </Col>
+                  </Row>
+                </>
               )}
-            </Col>
-            <Col sm="1" className="text-right">
-              <Button
-                color="primary"
-                onClick={async () => {
-                  await AuthService.getInstance().logout();
-                  navigate("/login");
-                }}
-              >
-                Logout
-              </Button>
             </Col>
           </Row>
         </Card>

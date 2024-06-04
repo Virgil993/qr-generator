@@ -1,0 +1,70 @@
+.main-card-signin {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    background-color: #fff;
+    position: relative;
+  }
+
+  .card-sigin {
+    background: #fff;
+    padding: 50px;
+    border-radius: 15px;
+  }
+
+  .page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .form-control {
+    border-radius: 20px;
+    max-width: 300px;
+  }
+
+  .btn-submit {
+    border-radius: 20px;
+    color: #fff;
+    font-weight: 600;
+    max-width: 300px;
+    width: 100%;
+  }
+
+  .card-photo {
+  }
+
+  .wd-100p {
+    width: 100%;
+  }
+
+  .ht-60 {
+    height: 60px;
+  }
+
+@media (max-width: 767px) {
+    .main-card-signin {
+        display: block !important;
+        padding: 0;
+      }
+      .card-sigin{
+        padding: 25px;
+      }
+      .card-sigin-main {
+        padding: 25px;
+      }
+}
+
+@media (min-width:480px) {
+    .main-card-signin {
+        padding: 0;
+        max-width: 750px;
+      }
+}
+
+@media (min-width: 768px) {
+    .main-card-signin {
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+}

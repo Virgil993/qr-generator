@@ -12,6 +12,7 @@ import Auth from "./layouts/Auth";
 import Admin from "./layouts/Admin";
 import ViewCode from "./views/ViewCode";
 import Guest from "./views/Guest";
+import "./assets/css/styles.css";
 
 export default function App() {
   return (
