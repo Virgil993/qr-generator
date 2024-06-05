@@ -9,7 +9,6 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  ButtonGroup,
   Alert,
 } from "reactstrap";
 import { useState, useEffect } from "react";
@@ -20,6 +19,7 @@ import QRcode from "qrcode";
 import validator from "validator";
 import { ClockLoader } from "react-spinners";
 import CodeCard from "../components/CodeCard";
+import { colors } from "../assets/utils/colors";
 
 export default function AllCodes() {
   const navigate = useNavigate();
@@ -35,7 +35,6 @@ export default function AllCodes() {
     setCodeTitle("");
   };
   const [codesLoading, setCodesLoading] = useState(true);
-  const [deleteCodeLoading, setDeleteCodeLoading] = useState(false);
   const [addCodeLoading, setAddCodeLoading] = useState(false);
 
   const [errorTitle, setErrorTitle] = useState("");
@@ -65,7 +64,14 @@ export default function AllCodes() {
         const images = await Promise.all(
           result.codes.map(async (code) => {
             const res = await QRcode.toDataURL(
-              trackingURL + "?codeId=" + code.codeId
+              trackingURL + "?codeId=" + code.codeId,
+              {
+                color: {
+                  dark: "#0000",
+                  light: colors.main,
+                },
+                margin: 10
+              }
             );
             return res;
           })
@@ -78,28 +84,6 @@ export default function AllCodes() {
       fetchCodes();
     }
   }, [codesLoading, codes, codesImages, alertErrorMessage, trackingURL]);
-
-  async function handleDelete(id: string) {
-    setDeleteCodeLoading(true);
-    await CodeService.deleteCode(id)
-      .then(() => {
-        setCodes(codes.filter((code) => code.codeId !== id));
-        setCodesImages(
-          codesImages.filter((_, index) => codes[index].codeId !== id)
-        );
-      })
-      .catch((error) => {
-        navigate(0);
-        setAlertErrorMessage(
-          `Unexpected error: ${
-            error.message
-              ? error.message
-              : "Please check the backend logs in the project dashboard - https://app.genez.io."
-          }`
-        );
-      });
-    setDeleteCodeLoading(false);
-  }
 
   async function generateCode(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -144,7 +128,13 @@ export default function AllCodes() {
     );
     if (res && res.success) {
       const generatedCode = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + res.code!.codeId
+        trackingURL + "?codeId=" + res.code!.codeId,{
+          color: {
+            dark: "#0000",
+            light: colors.main,
+          },
+          margin: 10
+        }
       );
       setCodes([...codes, res.code!]);
       setCodesImages([...codesImages, generatedCode]);
@@ -156,21 +146,7 @@ export default function AllCodes() {
     setAddCodeLoading(false);
   }
 
-  async function handleDownload(id: string) {
-    const code = codes.find((code) => code.codeId === id);
-    if (code) {
-      const url = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + code.codeId
-      );
-      // Create an anchor element dynamically
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `qrcode-${code.title}.png`; // Set the filename for the downloaded image
 
-      // Programmatically click the anchor element to trigger the download
-      a.click();
-    }
-  }
 
   return alertErrorMessage != "" ? (
     <Row className="ms-5 me-5 ps-5 pe-5 mt-5 pt-5">
@@ -179,14 +155,14 @@ export default function AllCodes() {
   ) : (
     <>
       <Modal isOpen={modalAddCode} toggle={toggleModalAddCode}>
-        <ModalHeader toggle={toggleModalAddCode}>Add new code</ModalHeader>
+        <ModalHeader toggle={toggleModalAddCode}>Add new QR code</ModalHeader>
         <form>
           <ModalBody>
             <div className="text-center mb-3">
               <span className="text-danger ">{errorTitle}</span>
             </div>
             <div className="d-flex flex-column align-items-center mb-3">
-              <label>Code Title</label>
+              <label>QR Code Title</label>
               <Input
                 className="form-control"
                 placeholder="Title"
@@ -202,10 +178,10 @@ export default function AllCodes() {
               <span className="text-danger">{errorText}</span>
             </div>
             <div className="d-flex flex-column align-items-center mb-3">
-              <label>Code Text</label>
+              <label>QR Code Link</label>
               <Input
                 className="form-control"
-                placeholder="Text"
+                placeholder="Link"
                 autoComplete="Text"
                 value={codeText}
                 onChange={(e) => {
@@ -233,7 +209,7 @@ export default function AllCodes() {
               onClick={(e) => generateCode(e)}
               type="submit"
             >
-              Generate code
+              Generate QR code
             </Button>
             <Button color="primary" onClick={(e) => handleAdd(e)} type="submit">
               {addCodeLoading ? (
@@ -245,7 +221,7 @@ export default function AllCodes() {
                   data-testid="loader"
                 />
               ) : (
-                <>Add Code</>
+                <>Add QR Code</>
               )}
             </Button>
             <Button color="secondary" onClick={toggleModalAddCode}>
@@ -258,7 +234,7 @@ export default function AllCodes() {
         <Card className="p-4 mt-2">
           <Row>
             <Col xs="6" className="text-left">
-              <h1 className="text-left">All Codes</h1>
+              <h1 className="text-left">All QR Codes</h1>
             </Col>
             <Col xs="6" className="text-end">
               <Button
@@ -277,7 +253,7 @@ export default function AllCodes() {
               {codesLoading ? (
                 <Row className="mt-5 ms-5 mb-3">
                   <ClockLoader
-                    color={"blue"}
+                    color={colors.main}
                     loading={codesLoading}
                     size={100}
                     aria-label="Loading Spinner"
@@ -286,13 +262,17 @@ export default function AllCodes() {
                 </Row>
               ) : (
                 <>
-                  <Row>
+                  <Row className="mt-4">
                     {codes.map((code, index) => (
                       <Col className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
                         <CodeCard
-                          codeText={code.codeText}
-                          codeTitle={code.title}
                           photoUrl={codesImages[index]}
+                          code={code}
+                          setCodes={setCodes}
+                          codes={codes}
+                          codesImages={codesImages}
+                          setCodesImages={setCodesImages}
+                          setAlertErrorMessage={setAlertErrorMessage}
                         />
                       </Col>
                     ))}

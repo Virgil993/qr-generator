@@ -9,7 +9,6 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  ButtonGroup,
   Alert,
 } from "reactstrap";
 import { useState, useEffect } from "react";
@@ -24,6 +23,8 @@ import { AuthService } from "@genezio/auth";
 import QRcode from "qrcode";
 import validator from "validator";
 import { ClockLoader } from "react-spinners";
+import CodeCardSingle from "../components/CodeCardSingle";
+import { colors } from "../assets/utils/colors";
 
 export default function ViewCode() {
   const navigate = useNavigate();
@@ -36,11 +37,11 @@ export default function ViewCode() {
   const [modalEditCode, setModalEditCode] = useState(false);
   const toggleModalEditCode = () => {
     setModalEditCode(!modalEditCode);
-    setCodeTitle("");
+    setCodeTitle(code?.title || "");
+    setCodeText(code?.codeText || "");
   };
   const [trackingData, setTrackingData] = useState<Track[]>();
   const [codeLoading, setCodeLoading] = useState(true);
-  const [deleteCodeLoading, setDeleteCodeLoading] = useState(false);
   const [editCodeLoading, setEditCodeLoading] = useState(false);
   const [trackingLoading, setTrackingLoading] = useState(false);
 
@@ -70,7 +71,14 @@ export default function ViewCode() {
       if (result) {
         setCode(result);
         const image = await QRcode.toDataURL(
-          trackingURL + "?codeId=" + result.codeId
+          trackingURL + "?codeId=" + result.codeId,
+          {
+            color: {
+              dark: "#0000",
+              light: colors.main,
+            },
+            margin: 10
+          }
         );
         setCodeImage(image);
         setCodeLoading(false);
@@ -98,26 +106,6 @@ export default function ViewCode() {
       setTrackingData(result);
       setTrackingLoading(false);
     }
-  }
-
-  async function handleDelete(id: string) {
-    setDeleteCodeLoading(true);
-    await CodeService.deleteCode(id)
-      .then(() => {
-        alert("Code deleted successfully");
-        navigate(0);
-      })
-      .catch((error) => {
-        navigate(0);
-        setAlertErrorMessage(
-          `Unexpected error: ${
-            error.message
-              ? error.message
-              : "Please check the backend logs in the project dashboard - https://app.genez.io."
-          }`
-        );
-      });
-    setDeleteCodeLoading(false);
   }
 
   async function generateCode(e: React.MouseEvent<HTMLButtonElement>) {
@@ -165,7 +153,14 @@ export default function ViewCode() {
     });
     if (res && res.success) {
       const generatedCode = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + res.code!.codeId
+        trackingURL + "?codeId=" + res.code!.codeId,
+        {
+          color: {
+            dark: "#0000",
+            light: colors.main,
+          },
+          margin: 10
+        }
       );
       setCode(res.code!);
       setCodeImage(generatedCode);
@@ -177,21 +172,6 @@ export default function ViewCode() {
     setEditCodeLoading(false);
   }
 
-  async function handleDownload() {
-    if (code) {
-      const url = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + code.codeId
-      );
-      // Create an anchor element dynamically
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `qrcode-${code.title}.png`; // Set the filename for the downloaded image
-
-      // Programmatically click the anchor element to trigger the download
-      a.click();
-    }
-  }
-
   return alertErrorMessage != "" ? (
     <Row className="ms-5 me-5 ps-5 pe-5 mt-5 pt-5">
       <Alert color="danger">{alertErrorMessage}</Alert>
@@ -199,12 +179,15 @@ export default function ViewCode() {
   ) : (
     <>
       <Modal isOpen={modalEditCode} toggle={toggleModalEditCode}>
-        <ModalHeader toggle={toggleModalEditCode}>Add new code</ModalHeader>
+        <ModalHeader toggle={toggleModalEditCode}>Edit QR code</ModalHeader>
         <form>
           <ModalBody>
+            <div className="text-center mb-3">
             <span className="text-danger">{errorTitle}</span>
+            </div>
+            
             <div className="mb-3">
-              <label>Code Title</label>
+              <label>QR Code Title</label>
               <Input
                 className="form-control"
                 placeholder="Title"
@@ -216,13 +199,15 @@ export default function ViewCode() {
                 }}
               />
             </div>
-            <span className="text-danger">{errorText}</span>
+            <div>
+              <span className="text-danger">{errorText}</span>
+            </div>
             <div className="mb-3">
-              <label>Code Text</label>
+              <label>QR Code Link</label>
               <Input
                 className="form-control"
-                placeholder="Text"
-                autoComplete="Text"
+                placeholder="Link"
+                autoComplete="Link"
                 value={codeText}
                 onChange={(e) => {
                   setCodeText(e.target.value);
@@ -231,7 +216,9 @@ export default function ViewCode() {
                 }}
               />
             </div>
-            <span className="text-danger">{errorModal}</span>
+            <div>
+              <span className="text-danger">{errorModal}</span>
+            </div>
             {generatedCode ? (
               <div className="mb-3 d-flex flex-column">
                 <label className="mb-2">Code</label>
@@ -263,7 +250,7 @@ export default function ViewCode() {
                   data-testid="loader"
                 />
               ) : (
-                <>Add Code</>
+                <>Edit Code</>
               )}
             </Button>
             <Button color="secondary" onClick={toggleModalEditCode}>
@@ -274,139 +261,83 @@ export default function ViewCode() {
       </Modal>
       <Container className="mt-2">
         <Card className="p-4 mt-2">
-          <Row className="mt-2">
-            <Col sm="9">
-              {codeLoading ? (
-                <Row className="mt-5 ms-5 mb-3">
-                  <ClockLoader
-                    color={"blue"}
-                    loading={codeLoading}
-                    size={100}
-                    aria-label="Loading Spinner"
-                    data-testid="loader"
-                  />
-                </Row>
-              ) : (
-                <Row>
-                  <Col sm="12">
-                    <div className="mb-3">
-                      <p className="mb-0 d-flex flex-column">
-                        <span className="h4">Code title: {code?.title}</span>
-                        <span className="h4">Code text: {code?.codeText}</span>
-                      </p>
-                      <div className="mb-3">
-                        <img src={codeImage} id={code?.codeId} alt="N/A" />
-                      </div>
-                      <ButtonGroup aria-label="Basic example">
-                        <Button
-                          color="danger"
-                          onClick={() => handleDelete(code?.codeId || "")}
-                        >
-                          {deleteCodeLoading ? (
-                            <ClockLoader
-                              color={"black"}
-                              loading={deleteCodeLoading}
-                              size={30}
-                              aria-label="Loading Spinner"
-                              data-testid="loader"
-                            />
-                          ) : (
-                            <>Delete Code</>
-                          )}
-                        </Button>
-                        <Button
-                          color="primary"
-                          onClick={() => handleDownload()}
-                        >
-                          Download Code
-                        </Button>
-                        <Button
-                          color="primary"
-                          onClick={() => {
-                            toggleModalEditCode();
-                          }}
-                        >
-                          Edit Code
-                        </Button>
-                      </ButtonGroup>
-                    </div>
+          {
+            codeLoading ? (
+              <div className="d-flex justify-content-center"><ClockLoader
+              color={colors.main}
+              loading={codeLoading}
+              size={60}
+              aria-label="Loading Spinner"
+              data-testid="loader"
+            />
+              </div>
+            ) : (
+              <>
+              <Row className="mt-2">
+                <Col xs="6" >
+                  <h1>QR Code Title: {code ? code.title:""}</h1>
+                </Col>
+                <Col xs="6" className="text-end">
+                  
+                    <Button
+                      className="ms-2 me-2"
+                      color="success"
+                      onClick={() => {
+                        navigate("/admin/all-codes");
+                      }}
+                    >
+                      All Codes
+                    </Button>
+                    <Button
+                    className="ms-2 me-2"
+                      color="primary"
+                      onClick={async () => {
+                        await AuthService.getInstance().logout();
+                        navigate("/login");
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  
+                </Col>
+              </Row>
+              <Row>
+              <Col className="d-flex justify-content-center">
 
-                    <Row>
-                      <Col sm="12">
-                        {trackingLoading ? (
-                          <Row className="mt-5 ms-5 mb-3">
-                            <ClockLoader
-                              color={"blue"}
-                              loading={trackingLoading}
-                              size={100}
-                              aria-label="Loading Spinner"
-                              data-testid="loader"
-                            />
-                          </Row>
-                        ) : (
-                          <Row>
-                            <Col sm="12">
-                              <div className="mb-3">
-                                <p className="mb-0 d-flex flex-column">
-                                  <span className="h3">Tracking data</span>
-                                </p>
-                                <p className="mb-0 d-flex flex-column">
-                                  <span className="h4">
-                                    This code has been accesed{" "}
-                                    {trackingData?.length} time
-                                    {trackingData?.length === 1 ? "" : "s"}
-                                  </span>
-                                </p>
-                                <div className="mb-3">
-                                  <table className="table">
-                                    <thead>
-                                      <tr>
-                                        <th scope="col">Source IP</th>
-                                        <th scope="col">Date</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {trackingData?.map((track, index) => (
-                                        <tr key={index}>
-                                          <td>{track.sourceIp}</td>
-                                          <td>{track.date.toString()}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            </Col>
-                          </Row>
-                        )}
-                      </Col>
-                    </Row>
+                      <CodeCardSingle photoUrl={codeImage!} code={code!} setAlertErrorMessage={setAlertErrorMessage} toogleModalEditCode={toggleModalEditCode}  />
+                
+                </Col>
+    
+              </Row>
+              <Row className="d-flex justify-content-center align-items-center flex-column mt-4 text-center">
+                <Col>
+                  <h2>Tracking Data</h2>
                   </Col>
-                </Row>
-              )}
-            </Col>
-            <Col sm="3" className="text-right">
-              <ButtonGroup className="d-flex">
-                <Button
-                  color="success"
-                  onClick={() => {
-                    navigate("/admin/all-codes");
-                  }}
-                >
-                  All Codes
+                <Col className="mt-2 mb-4">
+                <Button color="info" onClick={()=>fetchTrackingData(code!.codeId)}>
+                      Refresh
                 </Button>
-                <Button
-                  color="primary"
-                  onClick={async () => {
-                    await AuthService.getInstance().logout();
-                    navigate("/login");
-                  }}
-                >
-                  Logout
-                </Button>
-              </ButtonGroup>
-            </Col>
-          </Row>
+                </Col>
+                <Col className="d-flex justify-content-center align-items-center ">
+                
+                {
+                    trackingLoading ? (
+                      <ClockLoader
+                      color={colors.main}
+                      loading={trackingLoading}
+                      size={60}
+                      aria-label="Loading Spinner"
+                      data-testid="loader"
+                    />
+                    ) : (
+                      <div style={{fontSize:"30px"}}>This code has been accesed {trackingData ? trackingData.length : "0" } times today</div>
+                    )
+                  }
+                </Col>
+              </Row>
+              </>
+            )
+          }
         </Card>
       </Container>
     </>

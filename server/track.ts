@@ -7,6 +7,7 @@ import {
 import { CodeModel } from "./models/code";
 import { connectDb, initTables, syncDb } from "./db/connect";
 import { TrackingModel } from "./models/tracking";
+import { Op } from "sequelize";
 
 const red_color = "\x1b[31m%s\x1b[0m";
 const missing_env_error =
@@ -15,7 +16,6 @@ const missing_env_error =
 export type Track = {
   id: string;
   codeId: string;
-  sourceIp: string;
   date: Date;
 };
 
@@ -47,8 +47,20 @@ export class TrackService {
   }
 
   async getTrackingData(codeId: string): Promise<Track[]> {
+    const dateNow = new Date();
+    const startOfDay = new Date(dateNow.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(dateNow.setHours(23, 59, 59, 999));
+
     const res = await TrackingModel.findAll({
-      where: { codeId: codeId },
+      where: {
+        codeId: codeId,
+        date: {
+          [Op.and]: {
+            [Op.gte]: startOfDay,
+            [Op.lte]: endOfDay,
+          },
+        },
+      },
     }).catch((error) => {
       console.log(error);
       return null;
@@ -85,10 +97,8 @@ export class TrackService {
         body: "Code not found",
       };
     }
-    const sourceIp = req.http.sourceIp;
     const res = await TrackingModel.create({
       codeId: codeId,
-      sourceIp: sourceIp,
       date: new Date(),
     }).catch((error) => {
       console.log(error);
@@ -102,7 +112,7 @@ export class TrackService {
     }
 
     return {
-      statusCode: "302",
+      statusCode: "303",
       body: "Code tracked successfully",
       headers: {
         Location: code.codeText,

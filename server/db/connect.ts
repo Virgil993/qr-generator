@@ -49,7 +49,6 @@ export function initTables(db: Sequelize) {
         primaryKey: true,
       },
       codeId: DataTypes.STRING(512),
-      sourceIp: DataTypes.STRING(512),
       date: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

@@ -8,21 +8,18 @@ import { ClockLoader } from "react-spinners";
 interface CodeCardProps {
   photoUrl: string;
   code: Code;
-  setCodes: (codes:Code[])=>void;
-  setCodesImages: (codesImages: string[])=> void;
-  codes: Code[];
-  codesImages: string[];
   setAlertErrorMessage: (message: string) => void;
+  toogleModalEditCode: ()=>void;
 }
 
-export default function CodeCard(props: CodeCardProps) {
+export default function CodeCardSingle(props: CodeCardProps) {
 
   const navigate = useNavigate();
   const trackingURL = import.meta.env.VITE_TRACKING_URL
   ? import.meta.env.VITE_TRACKING_URL
   : "";
-  const code = props.code;
 
+  const code = props.code;
   const[deleteCodeLoading, setDeleteCodeLoading] = useState(false);
   
   async function handleDownload() {
@@ -43,12 +40,7 @@ export default function CodeCard(props: CodeCardProps) {
     async function handleDelete() {
       setDeleteCodeLoading(true);
       await CodeService.deleteCode(code.codeId)
-        .then(() => {
-          props.setCodes(props.codes.filter((codeElem) => codeElem.codeId !== code.codeId));
-          props.setCodesImages(
-            props.codesImages.filter((_, index) => props.codes[index].codeId !== code.codeId)
-          );
-        })
+        .then(() => navigate("/admin/all-codes"))
         .catch((error) => {
           navigate(0);
           props.setAlertErrorMessage(
@@ -65,7 +57,7 @@ export default function CodeCard(props: CodeCardProps) {
   
 
   return (
-    <Card className="ht-100">
+    <Card className="ht-100 code-card-single">
       <Row className="card-top p-3">
         <div className="card-photo-wrapper">
         <img className="card-photo" src={props.photoUrl} alt="code" />
@@ -83,9 +75,7 @@ export default function CodeCard(props: CodeCardProps) {
         }>Download QR Code</Button>
         </Col>
         <Col className="text-center ps-4 pe-4 mb-3">
-        <Button color="success" onClick={()=>{
-          navigate(`/admin/view-code/${code.codeId}`)
-        }}>View QR Code</Button>
+          <Button color="warning" onClick={()=>props.toogleModalEditCode()}>Edit QR Code</Button>
         </Col>
         <Col className="text-center ps-4 pe-4 mb-3">
         {deleteCodeLoading ? (

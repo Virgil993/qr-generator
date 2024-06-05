@@ -203,6 +203,13 @@ export class CodeService {
     console.log(
       `Update code request received with id ${id} with title ${title} and code text ${codeText}`
     );
+    const isValidUrl = validator.isURL(codeText, {
+      protocols: ["http", "https"],
+      require_protocol: true,
+    });
+    if (!isValidUrl) {
+      throw new Error("The code text is not a valid URL");
+    }
 
     const code = await CodeModel.findOne({
       where: { codeId: id, ownerId: ownerId },

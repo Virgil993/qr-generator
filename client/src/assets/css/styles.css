@@ -32,6 +32,13 @@
   }
 
   .card-photo {
+    max-width: 100%;
+    border-radius: 20px;
+    
+  }
+
+  .card-photo-wrapper {
+    max-width: 100%;
   }
 
   .wd-100p {
@@ -40,6 +47,18 @@
 
   .ht-60 {
     height: 60px;
+  }
+
+  .ht-100 {
+    height: 100%;
+  }
+
+  .card-bottom button {
+    width: 100%;
+  }
+
+  .code-card-single{
+    max-width: fit-content;
   }
 
 @media (max-width: 767px) {
