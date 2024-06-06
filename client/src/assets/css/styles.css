@@ -23,6 +23,18 @@
     max-width: 300px;
   }
 
+  .form-guest-div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .form-guest-div input{
+    max-width: 400px;
+  }
+
   .btn-submit {
     border-radius: 20px;
     color: #fff;
