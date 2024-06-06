@@ -70,7 +70,7 @@ export default function AllCodes() {
                   dark: "#0000",
                   light: colors.main,
                 },
-                margin: 10
+                margin: 10,
               }
             );
             return res;
@@ -128,12 +128,13 @@ export default function AllCodes() {
     );
     if (res && res.success) {
       const generatedCode = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + res.code!.codeId,{
+        trackingURL + "?codeId=" + res.code!.codeId,
+        {
           color: {
             dark: "#0000",
             light: colors.main,
           },
-          margin: 10
+          margin: 10,
         }
       );
       setCodes([...codes, res.code!]);
@@ -145,8 +146,6 @@ export default function AllCodes() {
     }
     setAddCodeLoading(false);
   }
-
-
 
   return alertErrorMessage != "" ? (
     <Row className="ms-5 me-5 ps-5 pe-5 mt-5 pt-5">
@@ -249,9 +248,9 @@ export default function AllCodes() {
             </Col>
           </Row>
           <Row className="mt-2">
-            <Col sm="11">
+            <Col>
               {codesLoading ? (
-                <Row className="mt-5 ms-5 mb-3">
+                <Row className="d-flex justify-content-center">
                   <ClockLoader
                     color={colors.main}
                     loading={codesLoading}

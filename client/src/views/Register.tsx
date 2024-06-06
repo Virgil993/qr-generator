@@ -6,6 +6,8 @@ import { GenezioError } from "@genezio/types";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import React from "react";
 import logo from "../assets/images/logo.webp";
+import { colors } from "../assets/utils/colors";
+import { ClockLoader } from "react-spinners";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setpasswordConfirmation] = useState("");
   const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [error, setError] = useState("");
 
@@ -30,6 +33,7 @@ export default function Register() {
     }
 
     setError("");
+    setLoading(true);
     const res = await AuthService.getInstance()
       .register(email, password, name)
       .catch((err) => {
@@ -39,11 +43,13 @@ export default function Register() {
             ": " +
             (err as GenezioError).message
         );
+
         return null;
       });
     if (res) {
       navigate("/auth/login");
     }
+    setLoading(false);
   }
 
   const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
@@ -188,14 +194,26 @@ export default function Register() {
                                 </div>
                               </div>
                               <div className="text-center">
-                                <Button
-                                  className="btn-submit"
-                                  type="submit"
-                                  color="primary"
-                                  onClick={(e) => handleSubmit(e)}
-                                >
-                                  Submit
-                                </Button>
+                                {loading ? (
+                                  <div className="d-flex justify-content-center">
+                                    <ClockLoader
+                                      color={colors.main}
+                                      loading={loading}
+                                      size={30}
+                                      aria-label="Loading Spinner"
+                                      data-testid="loader"
+                                    />
+                                  </div>
+                                ) : (
+                                  <Button
+                                    className="btn-submit"
+                                    type="submit"
+                                    color="primary"
+                                    onClick={(e) => handleSubmit(e)}
+                                  >
+                                    Submit
+                                  </Button>
+                                )}
                               </div>
                               <div className="d-flex justify-content-center col-lg-12 my-2"></div>
                             </div>

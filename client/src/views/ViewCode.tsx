@@ -77,7 +77,7 @@ export default function ViewCode() {
               dark: "#0000",
               light: colors.main,
             },
-            margin: 10
+            margin: 10,
           }
         );
         setCodeImage(image);
@@ -159,7 +159,7 @@ export default function ViewCode() {
             dark: "#0000",
             light: colors.main,
           },
-          margin: 10
+          margin: 10,
         }
       );
       setCode(res.code!);
@@ -183,9 +183,9 @@ export default function ViewCode() {
         <form>
           <ModalBody>
             <div className="text-center mb-3">
-            <span className="text-danger">{errorTitle}</span>
+              <span className="text-danger">{errorTitle}</span>
             </div>
-            
+
             <div className="mb-3">
               <label>QR Code Title</label>
               <Input
@@ -261,83 +261,85 @@ export default function ViewCode() {
       </Modal>
       <Container className="mt-2">
         <Card className="p-4 mt-2">
-          {
-            codeLoading ? (
-              <div className="d-flex justify-content-center"><ClockLoader
-              color={colors.main}
-              loading={codeLoading}
-              size={60}
-              aria-label="Loading Spinner"
-              data-testid="loader"
-            />
-              </div>
-            ) : (
-              <>
+          {codeLoading ? (
+            <div className="d-flex justify-content-center">
+              <ClockLoader
+                color={colors.main}
+                loading={codeLoading}
+                size={60}
+                aria-label="Loading Spinner"
+                data-testid="loader"
+              />
+            </div>
+          ) : (
+            <>
               <Row className="mt-2">
-                <Col xs="6" >
-                  <h1>QR Code Title: {code ? code.title:""}</h1>
+                <Col xs="6">
+                  <h1>QR Code Title: {code ? code.title : ""}</h1>
                 </Col>
                 <Col xs="6" className="text-end">
-                  
-                    <Button
-                      className="ms-2 me-2"
-                      color="success"
-                      onClick={() => {
-                        navigate("/admin/all-codes");
-                      }}
-                    >
-                      All Codes
-                    </Button>
-                    <Button
+                  <Button
                     className="ms-2 me-2"
-                      color="primary"
-                      onClick={async () => {
-                        await AuthService.getInstance().logout();
-                        navigate("/login");
-                      }}
-                    >
-                      Logout
-                    </Button>
-                  
+                    color="success"
+                    onClick={() => {
+                      navigate("/admin/all-codes");
+                    }}
+                  >
+                    All Codes
+                  </Button>
+                  <Button
+                    className="ms-2 me-2"
+                    color="primary"
+                    onClick={async () => {
+                      await AuthService.getInstance().logout();
+                      navigate("/login");
+                    }}
+                  >
+                    Logout
+                  </Button>
                 </Col>
               </Row>
               <Row>
-              <Col className="d-flex justify-content-center">
-
-                      <CodeCardSingle photoUrl={codeImage!} code={code!} setAlertErrorMessage={setAlertErrorMessage} toogleModalEditCode={toggleModalEditCode}  />
-                
+                <Col className="d-flex justify-content-center">
+                  <CodeCardSingle
+                    photoUrl={codeImage!}
+                    code={code!}
+                    setAlertErrorMessage={setAlertErrorMessage}
+                    toogleModalEditCode={toggleModalEditCode}
+                  />
                 </Col>
-    
               </Row>
               <Row className="d-flex justify-content-center align-items-center flex-column mt-4 text-center">
                 <Col>
                   <h2>Tracking Data</h2>
-                  </Col>
-                <Col className="mt-2 mb-4">
-                <Button color="info" onClick={()=>fetchTrackingData(code!.codeId)}>
-                      Refresh
-                </Button>
+                </Col>
+                <Col className="mt-2 mb-3">
+                  <Button
+                    color="info"
+                    onClick={() => fetchTrackingData(code!.codeId)}
+                  >
+                    Refresh
+                  </Button>
                 </Col>
                 <Col className="d-flex justify-content-center align-items-center ">
-                
-                {
-                    trackingLoading ? (
-                      <ClockLoader
+                  {trackingLoading ? (
+                    <ClockLoader
                       color={colors.main}
                       loading={trackingLoading}
                       size={60}
                       aria-label="Loading Spinner"
                       data-testid="loader"
                     />
-                    ) : (
-                      <div style={{fontSize:"30px"}}>This code has been accesed {trackingData ? trackingData.length : "0" } times today</div>
-                    )
-                  }
+                  ) : (
+                    <div style={{ fontSize: "30px" }}>
+                      This code has been accesed{" "}
+                      {trackingData ? trackingData.length : "0"} times today
+                    </div>
+                  )}
                 </Col>
               </Row>
-              </>
-            )
-          }
+            </>
+          )}
         </Card>
       </Container>
     </>

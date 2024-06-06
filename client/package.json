@@ -11,7 +11,7 @@
     "install-prod-sdk": "npm install @genezio-sdk/qr-generator@1.0.0-prod"
   },
   "dependencies": {
-    "@genezio/auth": "^2.0.20",
+    "@genezio/auth": "^2.1.1",
     "@genezio/types": "^1.0.14",
     "@react-oauth/google": "^0.12.1",
     "axios": "^1.6.8",
