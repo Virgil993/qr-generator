@@ -2,6 +2,8 @@ import { CodeModel } from "./models/code";
 import { GenezioAuth, GenezioDeploy, GnzContext } from "@genezio/types";
 import { connectDb, initTables, syncDb } from "./db/connect";
 import validator from "validator";
+import { EmailWhiteList } from "./middleware/emailWhiteList";
+import { whiteList } from "./constants";
 
 const red_color = "\x1b[31m%s\x1b[0m";
 const missing_env_error =
@@ -65,6 +67,7 @@ export class CodeService {
    * @returns An object containing two properties: { success: true, codes: codes }
    */
   @GenezioAuth()
+  @EmailWhiteList(whiteList)
   async getAllCodes(context: GnzContext): Promise<GetCodesResponse> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);
@@ -100,6 +103,7 @@ export class CodeService {
    * @returns An object containing two properties: { success: true, code: code }
    */
   @GenezioAuth()
+  @EmailWhiteList(whiteList)
   async createCode(
     context: GnzContext,
     title: string,
@@ -149,6 +153,7 @@ export class CodeService {
    * @returns The code object.
    */
   @GenezioAuth()
+  @EmailWhiteList(whiteList)
   async getCode(context: GnzContext, codeId: string): Promise<Code | null> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);
@@ -186,6 +191,7 @@ export class CodeService {
    * @returns An object containing one property: { success: true }
    */
   @GenezioAuth()
+  @EmailWhiteList(whiteList)
   async updateCode(
     context: GnzContext,
     id: string,
@@ -247,6 +253,7 @@ export class CodeService {
    * @returns An object containing one property: { success: true }
    */
   @GenezioAuth()
+  @EmailWhiteList(whiteList)
   async deleteCode(context: GnzContext, id: string): Promise<void> {
     if (!process.env.POSTGRES_URL) {
       console.log(red_color, missing_env_error);

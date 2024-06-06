@@ -1,9 +1,8 @@
 import { Button, Row, Col, Input, Form, Alert } from "reactstrap";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AuthService } from "@genezio/auth";
 import { GenezioError } from "@genezio/types";
-import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import React from "react";
 import logo from "../assets/images/logo.webp";
 import { ClockLoader } from "react-spinners";
@@ -14,7 +13,6 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
@@ -43,22 +41,6 @@ export default function Login() {
     }
     setLoading(false);
   }
-
-  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
-    setGoogleLoginLoading(true);
-    try {
-      await AuthService.getInstance().googleRegistration(
-        credentialResponse.credential!
-      );
-
-      navigate("/admin/all-codes");
-    } catch (error) {
-      console.log("Login Failed", error);
-      alert("Login Failed");
-    }
-
-    setGoogleLoginLoading(false);
-  };
 
   return (
     <React.Fragment>
@@ -138,27 +120,8 @@ export default function Login() {
                               <div
                                 className="d-flex justify-content-center col-lg-7"
                                 id="google_login_wrapper_btn"
-                              >
-                                <div className="mb-4 mt-3">
-                                  {googleLoginLoading ? (
-                                    <>Loading...</>
-                                  ) : (
-                                    <GoogleLogin
-                                      shape="pill"
-                                      size="large"
-                                      text="signup_with"
-                                      onSuccess={(credentialResponse) => {
-                                        handleGoogleLogin(credentialResponse);
-                                      }}
-                                      width={300}
-                                      onError={() => {
-                                        console.log("Login Failed");
-                                      }}
-                                    />
-                                  )}
-                                </div>
-                              </div>
-                              <div className="text-center">
+                              ></div>
+                              <div className="text-center mt-3">
                                 {loading ? (
                                   <div className="d-flex justify-content-center">
                                     <ClockLoader
@@ -181,33 +144,6 @@ export default function Login() {
                                 )}
                               </div>
                               <div className="d-flex justify-content-center col-lg-12 my-2"></div>
-                            </div>
-                            <div
-                              className="text-center justify-content-center mb-2"
-                              style={{
-                                color: "#6F42C1",
-                                fontSize: 12,
-                              }}
-                            >
-                              Don't want to sign in?{" "}
-                              <Link
-                                style={{
-                                  color: "#036DB5",
-                                }}
-                                to="/auth/guest"
-                              >
-                                Continue as guest
-                              </Link>{" "}
-                              <br></br>
-                              If you don't have an account,{" "}
-                              <Link
-                                style={{
-                                  color: "#036DB5",
-                                }}
-                                to="/auth/register"
-                              >
-                                Sign Up
-                              </Link>
                             </div>
                           </Form>
                         </div>
