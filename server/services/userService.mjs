@@ -81,3 +81,18 @@ export const logout = async (req, res) => {
   req.session.destroy();
   res.json({ message: "Logged out" });
 };
+
+export const checkToken = async (req, res) => {
+  if (req.session.userId) {
+    const user = await UserModel.findByPk(req.session.userId).catch((err) => {
+      console.error(err);
+      return null;
+    });
+    if (user) {
+      user.password = undefined;
+      res.json(user);
+      return;
+    }
+  }
+  res.status(401).json({ error: "Unauthorized" });
+};
