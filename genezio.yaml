@@ -1,6 +1,6 @@
 # Learn more about Genezio YAML at https://genezio.com/docs/project-structure/genezio-configuration-file/
 # The name of the project.
-name: qr-generator
+name: qr-generator-functions
 # The region where the project is deployed.
 region: us-east-1
 # The version of the Genezio YAML configuration to parse.
@@ -20,6 +20,12 @@ backend:
     deploy: npm install
     # List of scripts to run before starting `genezio local`.
     local: npm install
+  functions:
+    - name: qr-code-app
+      path: .
+      entry: app.mjs
+      handler: handler
+      type: aws
 # Information about the frontend, including the path, language, and publish directory.
 # It is optional. It can also be an array if there are multiple frontends you want to deploy.
 frontend:
@@ -40,6 +46,3 @@ frontend:
     # List of scripts that build your frontend before deployment. It should populate the specified `publish` directory.
     build: npm run build
     # List of scripts to run when starting the local development server.
-    start:
-      - npm install
-      - npm run dev
