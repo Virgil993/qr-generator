@@ -1,5 +1,4 @@
 import { Col } from "reactstrap";
-import logo from "../assets/images/logo.webp";
 
 export default function Footer() {
   return (

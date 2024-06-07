@@ -40,6 +40,11 @@ export function Home() {
               Continue as guest
             </Link>{" "}
           </Col>
+          <Col className="text-center mt-2">
+            <a href="https://www.freeprivacypolicy.com/live/5ac90497-cd99-45ad-8c4d-e447a8df5ff8">
+              Privacy policy
+            </a>
+          </Col>
         </Row>
         <Row className="d-flex flex-column" style={{ marginTop: "20vh" }}>
           {" "}
