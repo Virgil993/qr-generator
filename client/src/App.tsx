@@ -13,6 +13,7 @@ import Admin from "./layouts/Admin";
 import ViewCode from "./views/ViewCode";
 import Guest from "./views/Guest";
 import "./assets/css/styles.css";
+import { Home } from "./views/Home";
 
 export default function App() {
   return (
@@ -32,8 +33,9 @@ export default function App() {
           path={`/admin/view-code/:codeId`}
           element={<Admin element={<ViewCode />} />}
         />
+        <Route path="/auth/home" element={<Auth element={<Home />} />} />
 
-        <Route path="*" element={<Navigate to="/auth/login" />} />
+        <Route path="*" element={<Navigate to="/auth/home" />} />
       </Routes>
     </Router>
   );

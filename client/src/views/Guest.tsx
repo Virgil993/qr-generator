@@ -82,7 +82,7 @@ export default function Guest() {
               <Button
                 color="primary"
                 onClick={() => {
-                  navigate("/login");
+                  navigate("/auth/login");
                 }}
               >
                 Login
