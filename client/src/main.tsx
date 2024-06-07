@@ -5,12 +5,20 @@ import "./index.css";
 import { AuthService } from "@genezio/auth";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-// TODO: Add your token and region from the Genezio dashboard https://app.genez.io/dashboard
-AuthService.getInstance().setTokenAndRegion("<token>", "<region>");
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  ? import.meta.env.VITE_GOOGLE_CLIENT_ID
+  : "";
+const authToken = import.meta.env.VITE_AUTH_TOKEN
+  ? import.meta.env.VITE_AUTH_TOKEN
+  : "";
+const authRegion = import.meta.env.VITE_AUTH_REGION
+  ? import.meta.env.VITE_AUTH_REGION
+  : "";
+AuthService.getInstance().setTokenAndRegion(authToken, authRegion);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+    <GoogleOAuthProvider clientId={googleClientId}>
       <App />
     </GoogleOAuthProvider>
   </React.StrictMode>
