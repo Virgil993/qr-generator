@@ -4,7 +4,7 @@ import { getTrackingData, trackCode } from "../services/trackService.mjs";
 
 const router = Router();
 
-router.post("/:codeId", checkActiveSession, trackCode);
+router.post("/:codeId", trackCode);
 router.get("/:codeId", checkActiveSession, getTrackingData);
 
 export default router;

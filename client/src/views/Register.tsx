@@ -1,9 +1,9 @@
 import { Button, Card, Container, Row, Col, Input } from "reactstrap";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthService } from "@genezio/auth";
-import { GenezioError } from "@genezio/types";
-import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import { register } from "../network/ApiAxios";
+import { AxiosError } from "axios";
+import { User } from "../models/user";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -12,7 +12,6 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setpasswordConfirmation] = useState("");
-  const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
 
   const [error, setError] = useState("");
 
@@ -28,37 +27,20 @@ export default function Register() {
     }
 
     setError("");
-    const res = await AuthService.getInstance()
-      .register(email, password, name)
-      .catch((err) => {
-        setError(
-          "Error code: " +
-            (err as GenezioError).code +
-            ": " +
-            (err as GenezioError).message
-        );
-        return null;
-      });
-    if (res) {
+    const user: User = {
+      email,
+      password,
+      name,
+    };
+    const res = await register(user);
+    if (res instanceof AxiosError && res.response?.data.error) {
+      setError("Error: " + res.response.data.error);
+      return;
+    }
+    if (res.status === 200) {
       navigate("/auth/login");
     }
   }
-
-  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
-    setGoogleLoginLoading(true);
-    try {
-      await AuthService.getInstance().googleRegistration(
-        credentialResponse.credential!
-      );
-
-      navigate("/admin/all-codes");
-    } catch (error) {
-      console.log("Login Failed", error);
-      alert("Login Failed");
-    }
-
-    setGoogleLoginLoading(false);
-  };
 
   return (
     <Container className="mt-5">
@@ -111,23 +93,6 @@ export default function Register() {
                       value={passwordConfirmation}
                       onChange={(e) => setpasswordConfirmation(e.target.value)}
                     />
-                  </div>
-                  <div className="mb-3 ">
-                    {googleLoginLoading ? (
-                      <>Loading...</>
-                    ) : (
-                      <GoogleLogin
-                        onSuccess={(credentialResponse) => {
-                          handleGoogleLogin(credentialResponse);
-                        }}
-                        width={300}
-                        text="signup_with"
-                        onError={() => {
-                          console.log("Login Failed");
-                          alert("Login Failed");
-                        }}
-                      />
-                    )}
                   </div>
                   <div className="text-left">
                     <Button

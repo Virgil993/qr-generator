@@ -1,7 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import serverless from "serverless-http";
-import { connectDb, initTables } from "./db/connect.mjs";
+import cors from "cors";
+import { connectDb, initTables, syncDb } from "./db/connect.mjs";
 
 import authRoutes from "./routes/authRoutes.mjs";
 import codeRoutes from "./routes/codeRoutes.mjs";
@@ -10,7 +11,7 @@ import trackRoutes from "./routes/trackRoutes.mjs";
 dotenv.config();
 
 const app = express();
-const port = 8088;
+const port = 8080;
 
 // Database connection
 const db = connectDb();
@@ -21,6 +22,7 @@ initTables(db);
 // syncDb(db);
 
 app.use(express.json());
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/auth", authRoutes);

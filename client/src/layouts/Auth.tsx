@@ -6,7 +6,7 @@ export default function Auth(props: { element: React.ReactNode }) {
 
   React.useEffect(() => {
     if (localStorage.getItem("apiToken") != null) {
-      navigate("/admin/dashboard");
+      navigate("/admin/all-codes");
     }
   }, [navigate]);
 

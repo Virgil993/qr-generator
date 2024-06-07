@@ -13,17 +13,20 @@ import {
   Alert,
 } from "reactstrap";
 import { useState, useEffect } from "react";
-import {
-  CodeService,
-  Code,
-  Track,
-  TrackService,
-} from "@genezio-sdk/qr-generator";
 import { useNavigate, useParams } from "react-router-dom";
-import { AuthService } from "@genezio/auth";
 import QRcode from "qrcode";
 import validator from "validator";
 import { ClockLoader } from "react-spinners";
+import { Code } from "../models/code";
+import { Track } from "../models/track";
+import {
+  deleteCode,
+  getCode,
+  getTrackingData,
+  logout,
+  updateCode,
+} from "../network/ApiAxios";
+import { AxiosError } from "axios";
 
 export default function ViewCode() {
   const navigate = useNavigate();
@@ -57,24 +60,25 @@ export default function ViewCode() {
   useEffect(() => {
     const fetchCode = async () => {
       setCodeLoading(true);
-      const result = await CodeService.getCode(codeId || "").catch((error) => {
+      const result = await getCode(codeId || "");
+      if (result instanceof AxiosError) {
         setAlertErrorMessage(
           `Unexpected error: ${
-            error.message
-              ? error.message
+            result.response?.data.error
+              ? result.response?.data.error
               : "Please check the backend logs in the project dashboard - https://app.genez.io."
           }`
         );
-        return null;
-      });
-      if (result) {
-        setCode(result);
+        return;
+      }
+      if (result.data) {
+        setCode(result.data);
         const image = await QRcode.toDataURL(
-          trackingURL + "?codeId=" + result.codeId
+          trackingURL + "?codeId=" + result.data?.id
         );
         setCodeImage(image);
         setCodeLoading(false);
-        await fetchTrackingData(result.codeId);
+        await fetchTrackingData(result.data?.id);
       }
     };
     if (codeLoading) {
@@ -84,39 +88,39 @@ export default function ViewCode() {
 
   async function fetchTrackingData(id: string) {
     setTrackingLoading(true);
-    const result = await TrackService.getTrackingData(id).catch((error) => {
+    const result = await getTrackingData(id);
+    if (result instanceof AxiosError) {
       setAlertErrorMessage(
         `Unexpected error: ${
-          error.message
-            ? error.message
+          result.response?.data.error
+            ? result.response?.data.error
             : "Please check the backend logs in the project dashboard - https://app.genez.io."
         }`
       );
-      return null;
-    });
-    if (result) {
-      setTrackingData(result);
+      return;
+    }
+    if (result.data) {
+      setTrackingData(result.data);
       setTrackingLoading(false);
     }
   }
 
   async function handleDelete(id: string) {
     setDeleteCodeLoading(true);
-    await CodeService.deleteCode(id)
-      .then(() => {
-        alert("Code deleted successfully");
-        navigate(0);
-      })
-      .catch((error) => {
-        navigate(0);
-        setAlertErrorMessage(
-          `Unexpected error: ${
-            error.message
-              ? error.message
-              : "Please check the backend logs in the project dashboard - https://app.genez.io."
-          }`
-        );
-      });
+    const res = await deleteCode(id);
+    if (res instanceof AxiosError) {
+      setAlertErrorMessage(
+        `Unexpected error: ${
+          res.response?.data.error
+            ? res.response?.data.error
+            : "Please check the backend logs in the project dashboard - https://app.genez.io."
+        }`
+      );
+      return;
+    }
+
+    alert("Code deleted successfully");
+    navigate(0);
     setDeleteCodeLoading(false);
   }
 
@@ -149,25 +153,23 @@ export default function ViewCode() {
       return;
     }
     setEditCodeLoading(true);
-    const res = await CodeService.updateCode(
-      code!.codeId,
-      codeTitle,
-      codeText
-    ).catch((error) => {
-      setErrorModal(
-        `${
-          error.message
-            ? error.message
-            : "Unexpected error: Please check the backend logs in the project dashboard - https://app.genez.io."
+    const res = await updateCode(code?.id || "", codeTitle, codeText);
+
+    if (res instanceof AxiosError) {
+      setAlertErrorMessage(
+        `Unexpected error: ${
+          res.response?.data.error
+            ? res.response?.data.error
+            : "Please check the backend logs in the project dashboard - https://app.genez.io."
         }`
       );
-      return null;
-    });
-    if (res && res.success) {
+      return;
+    }
+    if (res.data) {
       const generatedCode = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + res.code!.codeId
+        trackingURL + "?codeId=" + res.data.id
       );
-      setCode(res.code!);
+      setCode(res.data);
       setCodeImage(generatedCode);
       setCodeTitle("");
       setCodeText("");
@@ -179,9 +181,7 @@ export default function ViewCode() {
 
   async function handleDownload() {
     if (code) {
-      const url = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + code.codeId
-      );
+      const url = await QRcode.toDataURL(trackingURL + "?codeId=" + code.id);
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;
@@ -295,12 +295,12 @@ export default function ViewCode() {
                         <span className="h4">Code text: {code?.codeText}</span>
                       </p>
                       <div className="mb-3">
-                        <img src={codeImage} id={code?.codeId} alt="N/A" />
+                        <img src={codeImage} id={code?.id} alt="N/A" />
                       </div>
                       <ButtonGroup aria-label="Basic example">
                         <Button
                           color="danger"
-                          onClick={() => handleDelete(code?.codeId || "")}
+                          onClick={() => handleDelete(code?.id || "")}
                         >
                           {deleteCodeLoading ? (
                             <ClockLoader
@@ -330,54 +330,33 @@ export default function ViewCode() {
                         </Button>
                       </ButtonGroup>
                     </div>
-
-                    <Row>
-                      <Col sm="12">
+                    <Row className="d-flex justify-content-center align-items-center flex-column mt-4 text-center">
+                      <Col>
+                        <h2>Tracking Data</h2>
+                      </Col>
+                      <Col className="mt-2 mb-3">
+                        <Button
+                          color="info"
+                          onClick={() => fetchTrackingData(code?.id || "")}
+                        >
+                          Refresh
+                        </Button>
+                      </Col>
+                      <Col className="d-flex justify-content-center align-items-center ">
                         {trackingLoading ? (
-                          <Row className="mt-5 ms-5 mb-3">
-                            <ClockLoader
-                              color={"blue"}
-                              loading={trackingLoading}
-                              size={100}
-                              aria-label="Loading Spinner"
-                              data-testid="loader"
-                            />
-                          </Row>
+                          <ClockLoader
+                            color={"blue"}
+                            loading={trackingLoading}
+                            size={60}
+                            aria-label="Loading Spinner"
+                            data-testid="loader"
+                          />
                         ) : (
-                          <Row>
-                            <Col sm="12">
-                              <div className="mb-3">
-                                <p className="mb-0 d-flex flex-column">
-                                  <span className="h3">Tracking data</span>
-                                </p>
-                                <p className="mb-0 d-flex flex-column">
-                                  <span className="h4">
-                                    This code has been accesed{" "}
-                                    {trackingData?.length} time
-                                    {trackingData?.length === 1 ? "" : "s"}
-                                  </span>
-                                </p>
-                                <div className="mb-3">
-                                  <table className="table">
-                                    <thead>
-                                      <tr>
-                                        <th scope="col">Source IP</th>
-                                        <th scope="col">Date</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {trackingData?.map((track, index) => (
-                                        <tr key={index}>
-                                          <td>{track.sourceIp}</td>
-                                          <td>{track.date.toString()}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            </Col>
-                          </Row>
+                          <div style={{ fontSize: "30px" }}>
+                            This code has been accesed{" "}
+                            {trackingData ? trackingData.length : "0"} times
+                            today
+                          </div>
                         )}
                       </Col>
                     </Row>
@@ -398,7 +377,8 @@ export default function ViewCode() {
                 <Button
                   color="primary"
                   onClick={async () => {
-                    await AuthService.getInstance().logout();
+                    await logout();
+                    localStorage.clear();
                     navigate("/login");
                   }}
                 >

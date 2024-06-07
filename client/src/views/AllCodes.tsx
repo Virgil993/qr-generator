@@ -13,12 +13,18 @@ import {
   Alert,
 } from "reactstrap";
 import { useState, useEffect } from "react";
-import { CodeService, Code } from "@genezio-sdk/qr-generator";
 import { useNavigate } from "react-router-dom";
-import { AuthService } from "@genezio/auth";
 import QRcode from "qrcode";
 import validator from "validator";
 import { ClockLoader } from "react-spinners";
+import { Code } from "../models/code";
+import {
+  createCode,
+  deleteCode,
+  getAllCodes,
+  logout,
+} from "../network/ApiAxios";
+import { AxiosError } from "axios";
 
 export default function AllCodes() {
   const navigate = useNavigate();
@@ -49,22 +55,24 @@ export default function AllCodes() {
   useEffect(() => {
     const fetchCodes = async () => {
       setCodesLoading(true);
-      const result = await CodeService.getAllCodes().catch((error) => {
+      const result = await getAllCodes();
+      if (result instanceof AxiosError) {
         setAlertErrorMessage(
           `Unexpected error: ${
-            error.message
-              ? error.message
+            result.response?.data.error
+              ? result.response?.data.error
               : "Please check the backend logs in the project dashboard - https://app.genez.io."
           }`
         );
-        return null;
-      });
-      if (result && result.success) {
-        setCodes(result.codes);
+        return;
+      }
+      if (result?.data) {
+        const resCodes = result.data;
+        setCodes(resCodes);
         const images = await Promise.all(
-          result.codes.map(async (code) => {
+          resCodes.map(async (code: Code) => {
             const res = await QRcode.toDataURL(
-              trackingURL + "?codeId=" + code.codeId
+              trackingURL + "?codeId=" + code.id
             );
             return res;
           })
@@ -80,23 +88,18 @@ export default function AllCodes() {
 
   async function handleDelete(id: string) {
     setDeleteCodeLoading(true);
-    await CodeService.deleteCode(id)
-      .then(() => {
-        setCodes(codes.filter((code) => code.codeId !== id));
-        setCodesImages(
-          codesImages.filter((_, index) => codes[index].codeId !== id)
-        );
-      })
-      .catch((error) => {
-        navigate(0);
-        setAlertErrorMessage(
-          `Unexpected error: ${
-            error.message
-              ? error.message
-              : "Please check the backend logs in the project dashboard - https://app.genez.io."
-          }`
-        );
-      });
+    const res = await deleteCode(id);
+    if (res instanceof AxiosError) {
+      setAlertErrorMessage(
+        `${
+          res.response?.data.error
+            ? res.response?.data.error
+            : "Unexpected error: Please check the backend logs in the project dashboard - https://app.genez.io."
+        }`
+      );
+    }
+    setCodes(codes.filter((code) => code.id !== id));
+    setCodesImages(codesImages.filter((_, index) => codes[index].id !== id));
     setDeleteCodeLoading(false);
   }
 
@@ -129,23 +132,21 @@ export default function AllCodes() {
       return;
     }
     setAddCodeLoading(true);
-    const res = await CodeService.createCode(codeTitle, codeText).catch(
-      (error) => {
-        setErrorModal(
-          `${
-            error.message
-              ? error.message
-              : "Unexpected error: Please check the backend logs in the project dashboard - https://app.genez.io."
-          }`
-        );
-        return null;
-      }
-    );
-    if (res && res.success) {
-      const generatedCode = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + res.code!.codeId
+    const res = await createCode(codeTitle, codeText);
+    if (res instanceof AxiosError) {
+      setErrorModal(
+        `${
+          res.response?.data.error
+            ? res.response?.data.error
+            : "Unexpected error: Please check the backend logs in the project dashboard - https://app.genez.io."
+        }`
       );
-      setCodes([...codes, res.code!]);
+    }
+    if (res.data) {
+      const generatedCode = await QRcode.toDataURL(
+        trackingURL + "?codeId=" + res.data.id
+      );
+      setCodes([...codes, res.data]);
       setCodesImages([...codesImages, generatedCode]);
       setCodeTitle("");
       setCodeText("");
@@ -156,11 +157,9 @@ export default function AllCodes() {
   }
 
   async function handleDownload(id: string) {
-    const code = codes.find((code) => code.codeId === id);
+    const code = codes.find((code) => code.id === id);
     if (code) {
-      const url = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + code.codeId
-      );
+      const url = await QRcode.toDataURL(trackingURL + "?codeId=" + code.id);
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;
@@ -267,7 +266,7 @@ export default function AllCodes() {
                 <Row>
                   <Col sm="12">
                     {codes.map((code, index) => (
-                      <div key={code.codeId} className="mb-3">
+                      <div key={code.id} className="mb-3">
                         <p className="mb-0 d-flex flex-column">
                           <span className="h4">Code title: {code.title}</span>
                           <span className="h4">Code text: {code.codeText}</span>
@@ -275,14 +274,14 @@ export default function AllCodes() {
                         <div className="mb-3">
                           <img
                             src={codesImages[index]}
-                            id={code.codeId}
+                            id={code.id}
                             alt="N/A"
                           />
                         </div>
                         <ButtonGroup aria-label="Basic example">
                           <Button
                             color="danger"
-                            onClick={() => handleDelete(code.codeId)}
+                            onClick={() => handleDelete(code.id || "")}
                           >
                             {deleteCodeLoading ? (
                               <ClockLoader
@@ -298,14 +297,14 @@ export default function AllCodes() {
                           </Button>
                           <Button
                             color="primary"
-                            onClick={() => handleDownload(code.codeId)}
+                            onClick={() => handleDownload(code.id || "")}
                           >
                             Download Code
                           </Button>
                           <Button
                             color="success"
                             onClick={() => {
-                              navigate(`/admin/view-code/${code.codeId}`);
+                              navigate(`/admin/view-code/${code.id}`);
                             }}
                           >
                             View Code
@@ -332,8 +331,9 @@ export default function AllCodes() {
               <Button
                 color="primary"
                 onClick={async () => {
-                  await AuthService.getInstance().logout();
-                  navigate("/login");
+                  await logout();
+                  localStorage.clear();
+                  navigate("/auth/login");
                 }}
               >
                 Logout

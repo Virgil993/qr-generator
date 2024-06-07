@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
 import { UserModel } from "../models/user.mjs";
+import { ActiveSessionModel } from "../models/activeSession.mjs";
+import Jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -59,7 +61,7 @@ export const login = async (req, res) => {
     return null;
   });
   if (!user) {
-    res.status(401).json({ error: "Unauthorized" });
+    res.status(403).json({ error: "Email or password incorect" });
     return;
   }
   const isPasswordValid = await bcrypt
@@ -69,16 +71,46 @@ export const login = async (req, res) => {
       return false;
     });
   if (!isPasswordValid) {
-    res.status(401).json({ error: "Unauthorized" });
+    res.status(403).json({ error: "Email or password incorect" });
+    return;
+  }
+
+  const token = Jwt.sign(user.toJSON(), "secret", {
+    expiresIn: 86400, // 1 week
+  });
+
+  const resSession = await ActiveSessionModel.create({
+    token: token,
+    userId: user.id,
+  }).catch((err) => {
+    console.error(err);
+    return null;
+  });
+  if (!resSession) {
+    res.status(500).json({ error: "Failed to create session" });
     return;
   }
   user.password = undefined;
-  req.session.userId = user.id;
-  res.json(user);
+  res.json({
+    user: user.toJSON(),
+    token: resSession.token,
+  });
 };
 
 export const logout = async (req, res) => {
   req.session.destroy();
+  const token = req.headers.authorization;
+  // Delete active session
+  const resSession = await ActiveSessionModel.destroy({
+    where: { token },
+  }).catch((err) => {
+    console.error(err);
+    return null;
+  });
+  if (!resSession) {
+    res.status(500).json({ error: "Failed to logout" });
+    return;
+  }
   res.json({ message: "Logged out" });
 };
 

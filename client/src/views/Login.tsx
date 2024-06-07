@@ -1,16 +1,14 @@
 import { Button, Card, Container, Row, Col, Input } from "reactstrap";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthService } from "@genezio/auth";
-import { GenezioError } from "@genezio/types";
-import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import { login } from "../network/ApiAxios";
+import { AxiosError } from "axios";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
 
   async function handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -21,37 +19,17 @@ export default function Login() {
 
     setError("");
 
-    const res = await AuthService.getInstance()
-      .login(email, password)
-      .catch((err) => {
-        setError(
-          "Error code: " +
-            (err as GenezioError).code +
-            ": " +
-            (err as GenezioError).message
-        );
-        return null;
-      });
-    if (res) {
+    const res = await login(email, password);
+    if (res instanceof AxiosError && res.response?.data.error) {
+      setError(res.response.data.error);
+      return;
+    }
+    if (res.status === 200) {
+      localStorage.setItem("apiToken", res.data.token);
+      localStorage.setItem("userId", res.data.userId);
       navigate("/admin/all-codes");
     }
   }
-
-  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
-    setGoogleLoginLoading(true);
-    try {
-      await AuthService.getInstance().googleRegistration(
-        credentialResponse.credential!
-      );
-
-      navigate("/admin/all-codes");
-    } catch (error) {
-      console.log("Login Failed", error);
-      alert("Login Failed");
-    }
-
-    setGoogleLoginLoading(false);
-  };
 
   return (
     <Container className="mt-5">
@@ -84,22 +62,6 @@ export default function Login() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
-                  </div>
-                  <div className="mb-3">
-                    {googleLoginLoading ? (
-                      <>Loading...</>
-                    ) : (
-                      <GoogleLogin
-                        onSuccess={(credentialResponse) => {
-                          handleGoogleLogin(credentialResponse);
-                        }}
-                        width={300}
-                        onError={() => {
-                          console.log("Login Failed");
-                          alert("Login Failed");
-                        }}
-                      />
-                    )}
                   </div>
                   <div className="text-left">
                     <Button

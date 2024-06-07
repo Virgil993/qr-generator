@@ -16,5 +16,6 @@ export const checkActiveSession = async (req, res, next) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
+  req.session = { userId: activeSession.userId };
   next();
 };
