@@ -47,4 +47,4 @@ export const deleteCode = async (id: string) =>
   await instance.delete(`/codes/${id}`);
 
 export const getTrackingData = async (codeId: string) =>
-  await instance.get(`/track/${codeId}`);
+  await instance.get(`/track/data/${codeId}`);

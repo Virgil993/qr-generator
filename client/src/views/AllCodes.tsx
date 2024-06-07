@@ -71,9 +71,7 @@ export default function AllCodes() {
         setCodes(resCodes);
         const images = await Promise.all(
           resCodes.map(async (code: Code) => {
-            const res = await QRcode.toDataURL(
-              trackingURL + "?codeId=" + code.id
-            );
+            const res = await QRcode.toDataURL(trackingURL + "/" + code.id);
             return res;
           })
         );
@@ -144,7 +142,7 @@ export default function AllCodes() {
     }
     if (res.data) {
       const generatedCode = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + res.data.id
+        trackingURL + "/" + res.data.id
       );
       setCodes([...codes, res.data]);
       setCodesImages([...codesImages, generatedCode]);
@@ -159,7 +157,7 @@ export default function AllCodes() {
   async function handleDownload(id: string) {
     const code = codes.find((code) => code.id === id);
     if (code) {
-      const url = await QRcode.toDataURL(trackingURL + "?codeId=" + code.id);
+      const url = await QRcode.toDataURL(trackingURL + "/" + code.id);
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;

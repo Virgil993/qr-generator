@@ -74,7 +74,7 @@ export default function ViewCode() {
       if (result.data) {
         setCode(result.data);
         const image = await QRcode.toDataURL(
-          trackingURL + "?codeId=" + result.data?.id
+          trackingURL + "/" + result.data?.id
         );
         setCodeImage(image);
         setCodeLoading(false);
@@ -167,7 +167,7 @@ export default function ViewCode() {
     }
     if (res.data) {
       const generatedCode = await QRcode.toDataURL(
-        trackingURL + "?codeId=" + res.data.id
+        trackingURL + "/" + res.data.id
       );
       setCode(res.data);
       setCodeImage(generatedCode);
@@ -181,7 +181,7 @@ export default function ViewCode() {
 
   async function handleDownload() {
     if (code) {
-      const url = await QRcode.toDataURL(trackingURL + "?codeId=" + code.id);
+      const url = await QRcode.toDataURL(trackingURL + "/" + code.id);
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;
