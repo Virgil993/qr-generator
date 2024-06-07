@@ -1,3 +1,4 @@
+import { CodeModel } from "../models/code.mjs";
 import { TrackingModel } from "../models/tracking.mjs";
 
 export const trackCode = async (req, res) => {
