@@ -8,16 +8,6 @@ This is a QR Code Generator app built with Genezio and React. This app allows us
 - ✅ [npm](https://www.npmjs.com/)
 - ✅ [genezio](https://genezio.com/)
 
-### Postgres
-
-1. Host a Postgres Database. Follow this [tutorial](https://genezio.com/docs/features/databases) to get a free tier postgres database.
-2. If you created a postgres database using the Genezio dashboard then you can obtain the connection URL by going to the [databases dashboard](https://app.genez.io/databases/) and clicking on the `connect` button associated with your database.
-3. Create a `server/.env` file and add the following environment variables:
-
-```env
-POSTGRES_URL=<your-postgres-url>
-```
-
 ## Run the app
 
 ### Clone the repository
@@ -26,6 +16,16 @@ POSTGRES_URL=<your-postgres-url>
 git clone https://github.com/Virgil993/qr-generator.git
 
 cd qr-generator
+```
+
+### Postgres
+
+1. Host a Postgres Database. Follow this [tutorial](https://genezio.com/docs/features/databases) to get a free tier postgres database.
+2. If you created a postgres database using the Genezio dashboard then you can obtain the connection URL by going to the [databases dashboard](https://app.genez.io/databases/) and clicking on the `connect` button associated with your database.
+3. Create a `server/.env` file and add the following environment variables:
+
+```env
+POSTGRES_URL=<your-postgres-url>
 ```
 
 ### Enable Authentification
