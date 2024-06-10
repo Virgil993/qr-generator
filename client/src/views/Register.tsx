@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { register } from "../network/ApiAxios";
 import { AxiosError } from "axios";
 import { User } from "../models/user";
+import { ClockLoader } from "react-spinners";
+import { colors } from "../assets/utils/colors";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setpasswordConfirmation] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [error, setError] = useState("");
 
@@ -32,9 +35,12 @@ export default function Register() {
       password,
       name,
     };
+    setLoading(true);
     const res = await register(user);
+    
+    setLoading(false);
     if (res instanceof AxiosError && res.response?.data.error) {
-      setError("Error: " + res.response.data.error);
+      setError(res.response.data.error);
       return;
     }
     if (res.status === 200) {
@@ -94,15 +100,28 @@ export default function Register() {
                       onChange={(e) => setpasswordConfirmation(e.target.value)}
                     />
                   </div>
-                  <div className="text-left">
-                    <Button
-                      type="submit"
-                      color="primary"
-                      onClick={(e) => handleSubmit(e)}
-                    >
-                      Submit
-                    </Button>
-                  </div>
+                  <div className="text-center">
+                                {loading ? (
+                                  <div className="d-flex justify-content-center">
+                                    <ClockLoader
+                                      color={colors.main}
+                                      loading={loading}
+                                      size={30}
+                                      aria-label="Loading Spinner"
+                                      data-testid="loader"
+                                    />
+                                  </div>
+                                ) : (
+                                  <Button
+                                    className="btn-submit"
+                                    type="submit"
+                                    color="primary"
+                                    onClick={(e) => handleSubmit(e)}
+                                  >
+                                    Submit
+                                  </Button>
+                                )}
+                              </div>
                   <div className="mt-2">
                     <span>
                       Already have an account? <a href="/auth/login">Login</a>

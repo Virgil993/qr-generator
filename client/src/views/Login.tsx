@@ -3,12 +3,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../network/ApiAxios";
 import { AxiosError } from "axios";
+import { ClockLoader } from "react-spinners";
+import { colors } from "../assets/utils/colors";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -19,7 +22,9 @@ export default function Login() {
 
     setError("");
 
+    setLoading(true);
     const res = await login(email, password);
+    setLoading(false);
     if (res instanceof AxiosError && res.response?.data.error) {
       setError(res.response.data.error);
       return;
@@ -63,15 +68,28 @@ export default function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
-                  <div className="text-left">
-                    <Button
-                      type="submit"
-                      color="primary"
-                      onClick={(e) => handleSubmit(e)}
-                    >
-                      Submit
-                    </Button>
-                  </div>
+                  <div className="text-center">
+                                {loading ? (
+                                  <div className="d-flex justify-content-center">
+                                    <ClockLoader
+                                      color={colors.main}
+                                      loading={loading}
+                                      size={30}
+                                      aria-label="Loading Spinner"
+                                      data-testid="loader"
+                                    />
+                                  </div>
+                                ) : (
+                                  <Button
+                                    className="btn-submit"
+                                    type="submit"
+                                    color="primary"
+                                    onClick={(e) => handleSubmit(e)}
+                                  >
+                                    Submit
+                                  </Button>
+                                )}
+                              </div>
                   <div className="mt-2">
                     <span>
                       Don't have an account?{" "}

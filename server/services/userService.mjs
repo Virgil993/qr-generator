@@ -2,12 +2,27 @@ import bcrypt from "bcryptjs";
 import { UserModel } from "../models/user.mjs";
 import { ActiveSessionModel } from "../models/activeSession.mjs";
 import Jwt from "jsonwebtoken";
+import { isPasswordValid } from "../utils/validation.mjs";
 
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
     res.status(400).json({ error: "Missing required fields" });
+    return;
+  }
+
+  if (
+    !email.toString().match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)
+  ) {
+    res.status(400).json({ error: "Invalid email" });
+    return;
+  }
+
+  try {
+    isPasswordValid(password);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
     return;
   }
 
@@ -53,6 +68,13 @@ export const login = async (req, res) => {
 
   if (!email || !password) {
     res.status(400).json({ error: "Missing required fields" });
+    return;
+  }
+
+  if (
+    !email.toString().match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)
+  ) {
+    res.status(400).json({ error: "Invalid email" });
     return;
   }
 
