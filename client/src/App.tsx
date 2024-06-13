@@ -14,6 +14,7 @@ import ViewCode from "./views/ViewCode";
 import Guest from "./views/Guest";
 import "./assets/css/styles.css";
 import { Home } from "./views/Home";
+import PrivacyPolicy from "./views/PrivacyPolicy";
 
 export default function App() {
   return (
@@ -34,7 +35,7 @@ export default function App() {
           element={<Admin element={<ViewCode />} />}
         />
         <Route path="/auth/home" element={<Auth element={<Home />} />} />
-
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="*" element={<Navigate to="/auth/home" />} />
       </Routes>
     </Router>
