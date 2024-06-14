@@ -41,7 +41,6 @@ frontend:
   scripts:
     # List of scripts to run before deploying the frontend.
     deploy:
-      - npm install @genezio-sdk/${{projectName}}@1.0.0-${{stage}}
       - npm install
     # List of scripts that build your frontend before deployment. It should populate the specified `publish` directory.
     build: npm run build
