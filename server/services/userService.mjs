@@ -120,7 +120,6 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-  req.session.destroy();
   const token = req.headers.authorization;
   // Delete active session
   const resSession = await ActiveSessionModel.destroy({

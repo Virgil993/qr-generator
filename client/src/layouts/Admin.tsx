@@ -7,7 +7,7 @@ export default function Admin(props: { element: React.ReactNode }) {
   React.useEffect(() => {
     if (localStorage.getItem("apiToken") === null) {
       localStorage.clear();
-      navigate("/auth/home");
+      navigate("/auth/login");
       return;
     }
     async function checkUserAuth() {
@@ -17,7 +17,7 @@ export default function Admin(props: { element: React.ReactNode }) {
       });
       if (res?.status !== 200) {
         localStorage.clear();
-        navigate("/auth/home");
+        navigate("/auth/login");
       }
     }
     checkUserAuth();

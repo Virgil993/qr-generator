@@ -11,7 +11,7 @@ const router = Router();
 
 router.post("/register", register);
 router.post("/login", login);
-router.post("/logout", logout);
+router.post("/logout", checkActiveSession, logout);
 router.get("/check-token", checkActiveSession, checkToken);
 
 export default router;
