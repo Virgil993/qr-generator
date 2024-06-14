@@ -355,7 +355,6 @@ export default function ViewCode() {
                           <div style={{ fontSize: "30px" }}>
                             This code has been accesed{" "}
                             {trackingData ? trackingData.length : "0"} times
-                            today
                           </div>
                         )}
                       </Col>
