@@ -4,13 +4,14 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@genezio/types": "^1.0.19",
     "@types/pg": "^8.11.5",
+    "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -31,6 +32,7 @@
     "@types/node": "^20.12.12",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
-    "eslint": "^8.55.0"
+    "eslint": "^8.55.0",
+    "ts-node": "^10.9.2"
   }
 }

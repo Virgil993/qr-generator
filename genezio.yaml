@@ -17,9 +17,13 @@ backend:
   # Scripts are running in the specified `path` directory.
   scripts:
     # List of scripts to run before deploying the backend.
-    deploy: npm install
+    deploy:
+      - npm install
+      - npm run build
     # List of scripts to run before starting `genezio local`.
-    local: npm install
+    local:
+      - npm install
+      - npm run build
   functions:
     - name: qr-code-app
       path: .

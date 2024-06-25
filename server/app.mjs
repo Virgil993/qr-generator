@@ -9,7 +9,6 @@ import codeRoutes from "./routes/codeRoutes.mjs";
 dotenv.config();
 
 const app = express();
-const port = 8080;
 
 // Database connection
 const db = connectDb();
@@ -24,11 +23,5 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/codes", codeRoutes);
-
-if (process.env.NODE_ENV === "dev") {
-  app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-  });
-}
 
 export const handler = serverless(app);

@@ -1,6 +1,7 @@
 import { DataTypes, Sequelize } from "sequelize";
 import pg from "pg";
 import { CodeModel } from "../models/code.mjs";
+import { TrackModel } from "../build/models/track.js";
 
 export function connectDb() {
   const sequelize = new Sequelize(process.env.POSTGRES_URL || "", {
@@ -36,6 +37,31 @@ export function initTables(db) {
 
       modelName: "CodeModel",
       tableName: "codes",
+    }
+  );
+
+  TrackModel.init(
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+      },
+      codeId: {
+        type: DataTypes.STRING(1024),
+        allowNull: false,
+      },
+      date: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
+    },
+
+    {
+      sequelize: db,
+
+      modelName: "TrackModel",
+      tableName: "track",
     }
   );
 }
