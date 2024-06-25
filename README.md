@@ -17,7 +17,7 @@ git clone https://github.com/Virgil993/qr-generator.git
 
 cd qr-generator
 
-git checkout functions-solution
+git checkout base-solution
 ```
 
 ### Postgres
@@ -28,22 +28,6 @@ git checkout functions-solution
 
 ```env
 POSTGRES_URL=<your-postgres-url>
-```
-
-### Enable Tracking
-
-This project is using `express` for the backend. Run the following command in the root of your project.
-
-```
-genezio deploy --env server/.env
-```
-
-This command will deploy your `express` app to the Genezio platform.
-To get the backend URL for the `express` go the the [Genezio dashboard](https://app.genez.io/dashboard) and click on the project you just deployed. Copy the `function-qr-code-app` URL. To allow the frontend to use the backend, add the following environment variables in the `.env` file in the `client` directory:
-
-```env
-VITE_TRACKING_URL="<function-qr-code-app-url>/track"
-VITE_SERVER_API_URL= "<function-qr-code-app-url>"
 ```
 
 ### Test the app
@@ -76,8 +60,22 @@ npm run dev
 
 Now both the server and the client are running locally and you can test your app before deploying.
 
-### Deploy the app
+### Deploy the backend
 
 ```bash
-genezio deploy
+genezio deploy --backend --env server/.env
+```
+
+### Deploy the frontend
+
+Using the Function URL provided in the terminal after your backend deployment, modify the `client/.env` file with the appropiate URL
+
+```env
+VITE_SERVER_API_URL= "https://<uuid>.<region>.cloud.genez.io"
+```
+
+Next deploy the frontend with the following command
+
+```bash
+genezio deploy --frontend
 ```
