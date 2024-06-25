@@ -313,7 +313,7 @@ export default function ViewCode() {
                 <Button
                   color="success"
                   onClick={() => {
-                    navigate("/admin/all-codes");
+                    navigate("/all-codes");
                   }}
                 >
                   All Codes
