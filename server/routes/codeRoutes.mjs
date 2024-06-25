@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { checkActiveSession } from "../middleware/checkActiveSession.mjs";
 import {
   createCode,
   deleteCode,
@@ -10,10 +9,10 @@ import {
 
 const router = Router();
 
-router.get("/", checkActiveSession, getAllCodes);
-router.post("/", checkActiveSession, createCode);
-router.get("/:id", checkActiveSession, getCode);
-router.put("/:id", checkActiveSession, updateCode);
-router.delete("/:id", checkActiveSession, deleteCode);
+router.get("/", getAllCodes);
+router.post("/", createCode);
+router.get("/:id", getCode);
+router.put("/:id", updateCode);
+router.delete("/:id", deleteCode);
 
 export default router;

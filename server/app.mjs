@@ -4,9 +4,7 @@ import serverless from "serverless-http";
 import cors from "cors";
 import { connectDb, initTables, syncDb } from "./db/connect.mjs";
 
-import authRoutes from "./routes/authRoutes.mjs";
 import codeRoutes from "./routes/codeRoutes.mjs";
-import trackRoutes from "./routes/trackRoutes.mjs";
 
 dotenv.config();
 
@@ -25,11 +23,7 @@ app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/auth", authRoutes);
 app.use("/codes", codeRoutes);
-app.use("/track", trackRoutes);
-
-// Define your routes here
 
 if (process.env.NODE_ENV === "dev") {
   app.listen(port, () => {

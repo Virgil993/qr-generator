@@ -18,12 +18,9 @@ import QRcode from "qrcode";
 import validator from "validator";
 import { ClockLoader } from "react-spinners";
 import { Code } from "../models/code";
-import { Track } from "../models/track";
 import {
   deleteCode,
   getCode,
-  getTrackingData,
-  logout,
   updateCode,
 } from "../network/ApiAxios";
 import { AxiosError } from "axios";
@@ -31,29 +28,24 @@ import { AxiosError } from "axios";
 export default function ViewCode() {
   const navigate = useNavigate();
 
-  const trackingURL = import.meta.env.VITE_TRACKING_URL
-    ? import.meta.env.VITE_TRACKING_URL
-    : "";
   const [code, setCode] = useState<Code>();
   const [codeImage, setCodeImage] = useState<string>();
   const [modalEditCode, setModalEditCode] = useState(false);
   const toggleModalEditCode = () => {
     setModalEditCode(!modalEditCode);
-    setCodeTitle("");
+    setTitle("");
   };
-  const [trackingData, setTrackingData] = useState<Track[]>();
   const [codeLoading, setCodeLoading] = useState(true);
   const [deleteCodeLoading, setDeleteCodeLoading] = useState(false);
   const [editCodeLoading, setEditCodeLoading] = useState(false);
-  const [trackingLoading, setTrackingLoading] = useState(false);
 
   const [errorTitle, setErrorTitle] = useState("");
   const [errorText, setErrorText] = useState("");
   const [errorModal, setErrorModal] = useState("");
   const [alertErrorMessage, setAlertErrorMessage] = useState<string>("");
 
-  const [codeTitle, setCodeTitle] = useState("");
-  const [codeText, setCodeText] = useState("");
+  const [title, setTitle] = useState("");
+  const [url, setUrl] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const { codeId } = useParams<{ codeId?: string }>();
 
@@ -74,36 +66,17 @@ export default function ViewCode() {
       if (result.data) {
         setCode(result.data);
         const image = await QRcode.toDataURL(
-          trackingURL + "/" + result.data?.id
+          result.data.url
         );
         setCodeImage(image);
         setCodeLoading(false);
-        await fetchTrackingData(result.data?.id);
       }
     };
     if (codeLoading) {
       fetchCode();
     }
-  }, [codeLoading, code, codeImage, alertErrorMessage, trackingURL, codeId]);
+  }, [codeLoading, code, codeImage, alertErrorMessage,  codeId]);
 
-  async function fetchTrackingData(id: string) {
-    setTrackingLoading(true);
-    const result = await getTrackingData(id);
-    if (result instanceof AxiosError) {
-      setAlertErrorMessage(
-        `Unexpected error: ${
-          result.response?.data.error
-            ? result.response?.data.error
-            : "Please check the backend logs in the project dashboard - https://app.genez.io."
-        }`
-      );
-      return;
-    }
-    if (result.data) {
-      setTrackingData(result.data);
-      setTrackingLoading(false);
-    }
-  }
 
   async function handleDelete(id: string) {
     setDeleteCodeLoading(true);
@@ -126,11 +99,11 @@ export default function ViewCode() {
 
   async function generateCode(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    if (!codeText) {
+    if (!url) {
       setErrorText("Text is mandatory");
       return;
     }
-    const isValidUrl = validator.isURL(codeText, {
+    const isValidUrl = validator.isURL(url, {
       protocols: ["http", "https"],
       require_protocol: true,
     });
@@ -138,22 +111,22 @@ export default function ViewCode() {
       setErrorModal("The code text is not a valid URL");
       return;
     }
-    const generatedCode = await QRcode.toDataURL(codeText);
+    const generatedCode = await QRcode.toDataURL(url);
     setGeneratedCode(generatedCode);
   }
 
   async function handleEdit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    if (!codeTitle) {
+    if (!title) {
       setErrorTitle("Title is mandatory");
       return;
     }
-    if (!codeText) {
+    if (!url) {
       setErrorText("Text is mandatory");
       return;
     }
     setEditCodeLoading(true);
-    const res = await updateCode(code?.id || "", codeTitle, codeText);
+    const res = await updateCode(code?.id || "", title, url);
 
     if (res instanceof AxiosError) {
       setAlertErrorMessage(
@@ -167,12 +140,12 @@ export default function ViewCode() {
     }
     if (res.data) {
       const generatedCode = await QRcode.toDataURL(
-        trackingURL + "/" + res.data.id
+        res.data.url
       );
       setCode(res.data);
       setCodeImage(generatedCode);
-      setCodeTitle("");
-      setCodeText("");
+      setTitle("");
+      setUrl("");
       setGeneratedCode("");
       toggleModalEditCode();
     }
@@ -181,7 +154,7 @@ export default function ViewCode() {
 
   async function handleDownload() {
     if (code) {
-      const url = await QRcode.toDataURL(trackingURL + "/" + code.id);
+      const url = await QRcode.toDataURL(code.url);
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;
@@ -209,23 +182,23 @@ export default function ViewCode() {
                 className="form-control"
                 placeholder="Title"
                 autoComplete="Title"
-                value={codeTitle}
+                value={title}
                 onChange={(e) => {
-                  setCodeTitle(e.target.value);
+                  setTitle(e.target.value);
                   setErrorTitle("");
                 }}
               />
             </div>
             <span className="text-danger">{errorText}</span>
             <div className="mb-3">
-              <label>Code Text</label>
+              <label>Code Url</label>
               <Input
                 className="form-control"
                 placeholder="Text"
                 autoComplete="Text"
-                value={codeText}
+                value={url}
                 onChange={(e) => {
-                  setCodeText(e.target.value);
+                  setUrl(e.target.value);
                   setErrorText("");
                   setErrorModal("");
                 }}
@@ -292,10 +265,11 @@ export default function ViewCode() {
                     <div className="mb-3">
                       <p className="mb-0 d-flex flex-column">
                         <span className="h4">Code title: {code?.title}</span>
-                        <span className="h4">Code text: {code?.codeText}</span>
+                        <span className="h4">Code url: {code?.url}</span>
                       </p>
                       <div className="mb-3">
-                        <img src={codeImage} id={code?.id} alt="N/A" />
+                        
+                        <img className="qr-img" src={codeImage} id={code?.id} alt="N/A" />
                       </div>
                       <ButtonGroup aria-label="Basic example">
                         <Button
@@ -330,35 +304,6 @@ export default function ViewCode() {
                         </Button>
                       </ButtonGroup>
                     </div>
-                    <Row className="d-flex justify-content-center align-items-center flex-column mt-4 text-center">
-                      <Col>
-                        <h2>Tracking Data</h2>
-                      </Col>
-                      <Col className="mt-2 mb-3">
-                        <Button
-                          color="info"
-                          onClick={() => fetchTrackingData(code?.id || "")}
-                        >
-                          Refresh
-                        </Button>
-                      </Col>
-                      <Col className="d-flex justify-content-center align-items-center ">
-                        {trackingLoading ? (
-                          <ClockLoader
-                            color={"blue"}
-                            loading={trackingLoading}
-                            size={60}
-                            aria-label="Loading Spinner"
-                            data-testid="loader"
-                          />
-                        ) : (
-                          <div style={{ fontSize: "30px" }}>
-                            This code has been accesed{" "}
-                            {trackingData ? trackingData.length : "0"} times
-                          </div>
-                        )}
-                      </Col>
-                    </Row>
                   </Col>
                 </Row>
               )}
@@ -373,16 +318,7 @@ export default function ViewCode() {
                 >
                   All Codes
                 </Button>
-                <Button
-                  color="primary"
-                  onClick={async () => {
-                    await logout();
-                    localStorage.clear();
-                    navigate("/login");
-                  }}
-                >
-                  Logout
-                </Button>
+  
               </ButtonGroup>
             </Col>
           </Row>

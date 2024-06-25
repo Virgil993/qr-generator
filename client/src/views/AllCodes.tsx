@@ -22,22 +22,18 @@ import {
   createCode,
   deleteCode,
   getAllCodes,
-  logout,
 } from "../network/ApiAxios";
 import { AxiosError } from "axios";
 
 export default function AllCodes() {
   const navigate = useNavigate();
 
-  const trackingURL = import.meta.env.VITE_TRACKING_URL
-    ? import.meta.env.VITE_TRACKING_URL
-    : "";
   const [codes, setCodes] = useState<Code[]>([]);
   const [codesImages, setCodesImages] = useState<string[]>([]);
   const [modalAddCode, setModalAddCode] = useState(false);
   const toggleModalAddCode = () => {
     setModalAddCode(!modalAddCode);
-    setCodeTitle("");
+    setTitle("");
   };
   const [codesLoading, setCodesLoading] = useState(true);
   const [deleteCodeLoading, setDeleteCodeLoading] = useState(false);
@@ -48,8 +44,8 @@ export default function AllCodes() {
   const [errorModal, setErrorModal] = useState("");
   const [alertErrorMessage, setAlertErrorMessage] = useState<string>("");
 
-  const [codeTitle, setCodeTitle] = useState("");
-  const [codeText, setCodeText] = useState("");
+  const [title, setTitle] = useState("");
+  const [url, setUrl] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
 
   useEffect(() => {
@@ -71,7 +67,7 @@ export default function AllCodes() {
         setCodes(resCodes);
         const images = await Promise.all(
           resCodes.map(async (code: Code) => {
-            const res = await QRcode.toDataURL(trackingURL + "/" + code.id);
+            const res = await QRcode.toDataURL(code.url);
             return res;
           })
         );
@@ -82,7 +78,7 @@ export default function AllCodes() {
     if (codesLoading) {
       fetchCodes();
     }
-  }, [codesLoading, codes, codesImages, alertErrorMessage, trackingURL]);
+  }, [codesLoading, codes, codesImages, alertErrorMessage]);
 
   async function handleDelete(id: string) {
     setDeleteCodeLoading(true);
@@ -103,11 +99,11 @@ export default function AllCodes() {
 
   async function generateCode(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
-    if (!codeText) {
+    if (!url) {
       setErrorText("Text is mandatory");
       return;
     }
-    const isValidUrl = validator.isURL(codeText, {
+    const isValidUrl = validator.isURL(url, {
       protocols: ["http", "https"],
       require_protocol: true,
     });
@@ -115,22 +111,22 @@ export default function AllCodes() {
       setErrorModal("The code text is not a valid URL");
       return;
     }
-    const generatedCode = await QRcode.toDataURL(codeText);
+    const generatedCode = await QRcode.toDataURL(url);
     setGeneratedCode(generatedCode);
   }
 
   async function handleAdd(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    if (!codeTitle) {
+    if (!title) {
       setErrorTitle("Title is mandatory");
       return;
     }
-    if (!codeText) {
+    if (!url) {
       setErrorText("Text is mandatory");
       return;
     }
     setAddCodeLoading(true);
-    const res = await createCode(codeTitle, codeText);
+    const res = await createCode(title, url);
     if (res instanceof AxiosError) {
       setErrorModal(
         `${
@@ -142,12 +138,12 @@ export default function AllCodes() {
     }
     if (res.data) {
       const generatedCode = await QRcode.toDataURL(
-        trackingURL + "/" + res.data.id
+        res.data.url
       );
       setCodes([...codes, res.data]);
       setCodesImages([...codesImages, generatedCode]);
-      setCodeTitle("");
-      setCodeText("");
+      setTitle("");
+      setUrl("");
       setGeneratedCode("");
       toggleModalAddCode();
     }
@@ -157,7 +153,7 @@ export default function AllCodes() {
   async function handleDownload(id: string) {
     const code = codes.find((code) => code.id === id);
     if (code) {
-      const url = await QRcode.toDataURL(trackingURL + "/" + code.id);
+      const url = await QRcode.toDataURL(code.url);
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;
@@ -185,23 +181,23 @@ export default function AllCodes() {
                 className="form-control"
                 placeholder="Title"
                 autoComplete="Title"
-                value={codeTitle}
+                value={title}
                 onChange={(e) => {
-                  setCodeTitle(e.target.value);
+                  setTitle(e.target.value);
                   setErrorTitle("");
                 }}
               />
             </div>
             <span className="text-danger">{errorText}</span>
             <div className="mb-3">
-              <label>Code Text</label>
+              <label>Code Url</label>
               <Input
                 className="form-control"
                 placeholder="Text"
                 autoComplete="Text"
-                value={codeText}
+                value={url}
                 onChange={(e) => {
-                  setCodeText(e.target.value);
+                  setUrl(e.target.value);
                   setErrorText("");
                   setErrorModal("");
                 }}
@@ -267,10 +263,11 @@ export default function AllCodes() {
                       <div key={code.id} className="mb-3">
                         <p className="mb-0 d-flex flex-column">
                           <span className="h4">Code title: {code.title}</span>
-                          <span className="h4">Code text: {code.codeText}</span>
+                          <span className="h4">Code url: {code.url}</span>
                         </p>
                         <div className="mb-3">
                           <img
+                          className="qr-img"
                             src={codesImages[index]}
                             id={code.id}
                             alt="N/A"
@@ -302,7 +299,7 @@ export default function AllCodes() {
                           <Button
                             color="success"
                             onClick={() => {
-                              navigate(`/admin/view-code/${code.id}`);
+                              navigate(`/view-code/${code.id}`);
                             }}
                           >
                             View Code
@@ -324,18 +321,6 @@ export default function AllCodes() {
                   </Col>
                 </Row>
               )}
-            </Col>
-            <Col sm="1" className="text-right">
-              <Button
-                color="primary"
-                onClick={async () => {
-                  await logout();
-                  localStorage.clear();
-                  navigate("/auth/login");
-                }}
-              >
-                Logout
-              </Button>
             </Col>
           </Row>
         </Card>
