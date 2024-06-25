@@ -17,7 +17,7 @@ initTables(db);
 
 // This function should be run only once to create the tables
 // It should not be run in production as it has a chance to modify the database
-// syncDb(db);
+syncDb(db);
 
 app.use(express.json());
 app.use(cors());
