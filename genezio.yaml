@@ -24,6 +24,7 @@ backend:
     local:
       - npm install
       - npm run build
+  # The functions that will be deployed to our serverless infrastructure.
   functions:
     - name: qr-code-app
       path: .
