@@ -18,15 +18,15 @@ import QRcode from "qrcode";
 import validator from "validator";
 import { ClockLoader } from "react-spinners";
 import { Code } from "../models/code";
-import {
-  createCode,
-  deleteCode,
-  getAllCodes,
-} from "../network/ApiAxios";
+import { createCode, deleteCode, getAllCodes } from "../network/ApiAxios";
 import { AxiosError } from "axios";
 
 export default function AllCodes() {
   const navigate = useNavigate();
+
+  const trackingURL = import.meta.env.VITE_TRACKING_URL
+    ? import.meta.env.VITE_TRACKING_URL
+    : "";
 
   const [codes, setCodes] = useState<Code[]>([]);
   const [codesImages, setCodesImages] = useState<string[]>([]);
@@ -67,7 +67,9 @@ export default function AllCodes() {
         setCodes(resCodes);
         const images = await Promise.all(
           resCodes.map(async (code: Code) => {
-            const res = await QRcode.toDataURL(code.url);
+            const res = await QRcode.toDataURL(
+              trackingURL + "?codeId=" + code.id
+            );
             return res;
           })
         );
@@ -78,7 +80,7 @@ export default function AllCodes() {
     if (codesLoading) {
       fetchCodes();
     }
-  }, [codesLoading, codes, codesImages, alertErrorMessage]);
+  }, [codesLoading, codes, codesImages, alertErrorMessage, trackingURL]);
 
   async function handleDelete(id: string) {
     setDeleteCodeLoading(true);
@@ -138,7 +140,7 @@ export default function AllCodes() {
     }
     if (res.data) {
       const generatedCode = await QRcode.toDataURL(
-        res.data.url
+        trackingURL + "?codeId=" + res.data.id
       );
       setCodes([...codes, res.data]);
       setCodesImages([...codesImages, generatedCode]);
@@ -153,7 +155,7 @@ export default function AllCodes() {
   async function handleDownload(id: string) {
     const code = codes.find((code) => code.id === id);
     if (code) {
-      const url = await QRcode.toDataURL(code.url);
+      const url = await QRcode.toDataURL(trackingURL + "?codeId=" + code.id);
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;
@@ -267,7 +269,7 @@ export default function AllCodes() {
                         </p>
                         <div className="mb-3">
                           <img
-                          className="qr-img"
+                            className="qr-img"
                             src={codesImages[index]}
                             id={code.id}
                             alt="N/A"

@@ -12,22 +12,25 @@ import {
   ButtonGroup,
   Alert,
 } from "reactstrap";
+import { Track, TrackService } from "@genezio-sdk/qr-generator-functions";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import QRcode from "qrcode";
 import validator from "validator";
 import { ClockLoader } from "react-spinners";
 import { Code } from "../models/code";
-import {
-  deleteCode,
-  getCode,
-  updateCode,
-} from "../network/ApiAxios";
+import { deleteCode, getCode, updateCode } from "../network/ApiAxios";
 import { AxiosError } from "axios";
 
 export default function ViewCode() {
   const navigate = useNavigate();
 
+  const trackingURL = import.meta.env.VITE_TRACKING_URL
+    ? import.meta.env.VITE_TRACKING_URL
+    : "";
+
+  const [trackingData, setTrackingData] = useState<Track[]>([]);
+  const [trackingLoading, setTrackingLoading] = useState(false);
   const [code, setCode] = useState<Code>();
   const [codeImage, setCodeImage] = useState<string>();
   const [modalEditCode, setModalEditCode] = useState(false);
@@ -66,17 +69,35 @@ export default function ViewCode() {
       if (result.data) {
         setCode(result.data);
         const image = await QRcode.toDataURL(
-          result.data.url
+          trackingURL + "?codeId=" + result.data.id
         );
         setCodeImage(image);
         setCodeLoading(false);
+        await fetchTrackingData(result.data.id);
       }
     };
     if (codeLoading) {
       fetchCode();
     }
-  }, [codeLoading, code, codeImage, alertErrorMessage,  codeId]);
+  }, [codeLoading, code, codeImage, alertErrorMessage, , trackingURL, codeId]);
 
+  async function fetchTrackingData(id: string) {
+    setTrackingLoading(true);
+    const result = await TrackService.getTrackingData(id).catch((error) => {
+      setAlertErrorMessage(
+        `Unexpected error: ${
+          error.message
+            ? error.message
+            : "Please check the backend logs in the project dashboard - https://app.genez.io."
+        }`
+      );
+      return null;
+    });
+    if (result) {
+      setTrackingData(result);
+      setTrackingLoading(false);
+    }
+  }
 
   async function handleDelete(id: string) {
     setDeleteCodeLoading(true);
@@ -140,7 +161,7 @@ export default function ViewCode() {
     }
     if (res.data) {
       const generatedCode = await QRcode.toDataURL(
-        res.data.url
+        trackingURL + "?codeId=" + res.data.id
       );
       setCode(res.data);
       setCodeImage(generatedCode);
@@ -154,7 +175,7 @@ export default function ViewCode() {
 
   async function handleDownload() {
     if (code) {
-      const url = await QRcode.toDataURL(code.url);
+      const url = await QRcode.toDataURL(trackingURL + "?codeId=" + code.id);
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;
@@ -268,8 +289,12 @@ export default function ViewCode() {
                         <span className="h4">Code url: {code?.url}</span>
                       </p>
                       <div className="mb-3">
-                        
-                        <img className="qr-img" src={codeImage} id={code?.id} alt="N/A" />
+                        <img
+                          className="qr-img"
+                          src={codeImage}
+                          id={code?.id}
+                          alt="N/A"
+                        />
                       </div>
                       <ButtonGroup aria-label="Basic example">
                         <Button
@@ -318,8 +343,36 @@ export default function ViewCode() {
                 >
                   All Codes
                 </Button>
-  
               </ButtonGroup>
+            </Col>
+          </Row>
+          <Row className="d-flex justify-content-center align-items-center flex-column mt-4 text-center">
+            <Col>
+              <h2>Tracking Data</h2>
+            </Col>
+            <Col className="mt-2 mb-3">
+              <Button
+                color="info"
+                onClick={() => fetchTrackingData(code!.id ?? "")}
+              >
+                Refresh
+              </Button>
+            </Col>
+            <Col className="d-flex justify-content-center align-items-center ">
+              {trackingLoading ? (
+                <ClockLoader
+                  color={"blue"}
+                  loading={trackingLoading}
+                  size={60}
+                  aria-label="Loading Spinner"
+                  data-testid="loader"
+                />
+              ) : (
+                <div style={{ fontSize: "30px" }}>
+                  This code has been accesed{" "}
+                  {trackingData ? trackingData.length : "0"} times today
+                </div>
+              )}
             </Col>
           </Row>
         </Card>

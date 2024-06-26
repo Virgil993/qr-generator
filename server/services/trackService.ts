@@ -6,7 +6,7 @@ import {
 } from "@genezio/types";
 import { CodeModel } from "../models/code.mjs";
 import { connectDb, initTables, syncDb } from "../db/connect.mjs";
-import { TrackModel } from "../models/track";
+import { TrackModel } from "../build/models/track.js";
 import { Op } from "sequelize";
 import axios from "axios";
 
