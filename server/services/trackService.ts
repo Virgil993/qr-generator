@@ -105,7 +105,7 @@ export class TrackService {
     }
     const codeId = req.queryStringParameters.codeId;
     console.log(`Tracking code with id ${codeId}`);
-    const code = await CodeModel.findOne({ where: { codeId: codeId } });
+    const code = await CodeModel.findOne({ where: { id: codeId } });
     if (!code) {
       return {
         statusCode: "404",
