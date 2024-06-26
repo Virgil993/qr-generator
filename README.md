@@ -17,7 +17,7 @@ git clone https://github.com/Virgil993/qr-generator.git
 
 cd qr-generator
 
-git checkout base-solution
+git checkout base-solution-tracking
 ```
 
 ### Postgres
@@ -32,26 +32,20 @@ POSTGRES_URL=<your-postgres-url>
 
 ### Test the app
 
-- Start the backend locally. In the `server` directory run
+- Start the backend locally. In the `root` directory run
 
 ```
-npm install
+genezio local
 ```
 
-For windows:
+- Start the frontend locally. Open another terminal. In the `client` directory in the `.env` modify the environment variables.
 
-```bash
-$env:NODE_ENV="dev"; node app.mjs
+```
+VITE_TRACKING_URL="http://localhost:8083/TrackService/trackCode"
+VITE_SERVER_API_URL= "http://localhost:8083/.functions/function-qr-code-app"
 ```
 
-For unix:
-
-```bash
-NODE_ENV=dev node app.mjs
-```
-
-- Start the frontend locally. Open another terminal. In the `client` directory in the `.env` file change the `VITE_SERVER_API_URL` variable to `http://localhost:8080`.
-  Run the following commands in the `client` directory
+Run the following commands in the `client` directory
 
 ```
 npm install
@@ -68,9 +62,10 @@ genezio deploy --backend --env server/.env
 
 ### Deploy the frontend
 
-Using the Function URL provided in the terminal after your backend deployment, modify the `client/.env` file with the appropiate URL
+Using the Function URLs provided in the terminal after your backend deployment, modify the `client/.env` file with the appropiate URL
 
 ```env
+VITE_TRACKING_URL="https://<uuid>.<region>.cloud.genez.io/TrackService/trackCode"
 VITE_SERVER_API_URL= "https://<uuid>.<region>.cloud.genez.io"
 ```
 
