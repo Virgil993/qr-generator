@@ -1,10 +1,10 @@
 import bcrypt from "bcryptjs";
-import { UserModel } from "../models/user.mjs";
-import { ActiveSessionModel } from "../models/activeSession.mjs";
+import { UserModel } from "../models/user.js";
+import { ActiveSessionModel } from "../models/activeSession.js";
 import Jwt from "jsonwebtoken";
-import { isPasswordValid } from "../utils/validation.mjs";
+import { isPasswordValid } from "../utils/validation.js";
 
-export const register = async (req, res) => {
+export const register = async (req: any, res: any) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
@@ -21,7 +21,7 @@ export const register = async (req, res) => {
 
   try {
     isPasswordValid(password);
-  } catch (error) {
+  } catch (error: any) {
     res.status(400).json({ error: error.message });
     return;
   }
@@ -59,11 +59,11 @@ export const register = async (req, res) => {
     res.status(500).json({ error: "Failed to create user" });
     return;
   }
-  user.password = undefined;
+  user.password = "";
   res.json(user);
 };
 
-export const login = async (req, res) => {
+export const login = async (req: any, res: any) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -112,14 +112,14 @@ export const login = async (req, res) => {
     res.status(500).json({ error: "Failed to create session" });
     return;
   }
-  user.password = undefined;
+  user.password = "";
   res.json({
     user: user.toJSON(),
     token: resSession.token,
   });
 };
 
-export const logout = async (req, res) => {
+export const logout = async (req: any, res: any) => {
   const token = req.headers.authorization;
   // Delete active session
   const resSession = await ActiveSessionModel.destroy({
@@ -135,14 +135,14 @@ export const logout = async (req, res) => {
   res.json({ message: "Logged out" });
 };
 
-export const checkToken = async (req, res) => {
+export const checkToken = async (req: any, res: any) => {
   if (req.session.userId) {
     const user = await UserModel.findByPk(req.session.userId).catch((err) => {
       console.error(err);
       return null;
     });
     if (user) {
-      user.password = undefined;
+      user.password = "";
       res.json(user);
       return;
     }

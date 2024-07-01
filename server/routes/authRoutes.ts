@@ -4,8 +4,8 @@ import {
   login,
   logout,
   register,
-} from "../services/userService.mjs";
-import { checkActiveSession } from "../middleware/checkActiveSession.mjs";
+} from "../services/userService.js";
+import { checkActiveSession } from "../middleware/checkActiveSession.js";
 
 const router = Router();
 

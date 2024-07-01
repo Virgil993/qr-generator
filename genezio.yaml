@@ -22,8 +22,8 @@ backend:
     local: npm install
   functions:
     - name: qr-code-app
-      path: .
-      entry: app.mjs
+      path: ./build
+      entry: index.js
       handler: handler
       type: aws
 # Information about the frontend, including the path, language, and publish directory.

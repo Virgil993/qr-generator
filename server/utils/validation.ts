@@ -1,4 +1,4 @@
-export const isPasswordValid = (password) => {
+export const isPasswordValid = (password: string) => {
   if (password.toString().length < 8) {
     throw new Error(
       "Password not valid. Please provide a password that contains at least 8 characters."

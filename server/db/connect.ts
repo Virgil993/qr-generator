@@ -1,8 +1,8 @@
 import { DataTypes, Sequelize } from "sequelize";
 import pg from "pg";
-import { CodeModel } from "../models/code.mjs";
-import { ActiveSessionModel } from "../models/activeSession.mjs";
-import { UserModel } from "../models/user.mjs";
+import { CodeModel } from "../models/code.js";
+import { ActiveSessionModel } from "../models/activeSession.js";
+import { UserModel } from "../models/user.js";
 
 export function connectDb() {
   const sequelize = new Sequelize(process.env.POSTGRES_URL || "", {
@@ -20,7 +20,7 @@ export function connectDb() {
   return sequelize;
 }
 
-export function initTables(db) {
+export function initTables(db: Sequelize) {
   CodeModel.init(
     {
       id: {
@@ -82,6 +82,6 @@ export function initTables(db) {
   );
 }
 
-export async function syncDb(db) {
+export async function syncDb(db: Sequelize) {
   await db.sync();
 }

@@ -1,7 +1,7 @@
-import { ActiveSessionModel } from "../models/activeSession.mjs";
+import { ActiveSessionModel } from "../models/activeSession.js";
 import Jwt from "jsonwebtoken";
 
-export const checkActiveSession = async (req, res, next) => {
+export const checkActiveSession = async (req: any, res: any, next: any) => {
   const token = req.headers.authorization;
   if (!token) {
     res.status(401).json({ error: "Unauthorized" });

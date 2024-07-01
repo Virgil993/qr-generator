@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { checkActiveSession } from "../middleware/checkActiveSession.mjs";
+import { checkActiveSession } from "../middleware/checkActiveSession.js";
 import {
   createCode,
   deleteCode,
   getAllCodes,
   getCode,
   updateCode,
-} from "../services/codeService.mjs";
+} from "../services/codeService.js";
 
 const router = Router();
 

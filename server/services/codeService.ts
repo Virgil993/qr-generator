@@ -1,7 +1,7 @@
-import { CodeModel } from "../models/code.mjs";
+import { CodeModel } from "../models/code.js";
 import validator from "validator";
 
-export const getAllCodes = async (req, res) => {
+export const getAllCodes = async (req: any, res: any) => {
   const userId = req.session.userId;
   const codes = await CodeModel.findAll({ where: { ownerId: userId } }).catch(
     (err) => {
@@ -16,7 +16,7 @@ export const getAllCodes = async (req, res) => {
   res.json(codes);
 };
 
-export const createCode = async (req, res) => {
+export const createCode = async (req: any, res: any) => {
   const userId = req.session.userId;
   const { title, url } = req.body;
 
@@ -50,7 +50,7 @@ export const createCode = async (req, res) => {
   res.json(code);
 };
 
-export const getCode = async (req, res) => {
+export const getCode = async (req: any, res: any) => {
   const userId = req.session.userId;
   const { id } = req.params;
   const code = await CodeModel.findOne({
@@ -66,7 +66,7 @@ export const getCode = async (req, res) => {
   res.json(code);
 };
 
-export const updateCode = async (req, res) => {
+export const updateCode = async (req: any, res: any) => {
   const userId = req.session.userId;
   const { id } = req.params;
   const { title, url } = req.body;
@@ -94,7 +94,7 @@ export const updateCode = async (req, res) => {
   res.json(code);
 };
 
-export const deleteCode = async (req, res) => {
+export const deleteCode = async (req: any, res: any) => {
   const userId = req.session.userId;
   const { id } = req.params;
   const code = await CodeModel.findOne({

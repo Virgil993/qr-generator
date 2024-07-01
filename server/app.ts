@@ -2,10 +2,10 @@ import express from "express";
 import dotenv from "dotenv";
 import serverless from "serverless-http";
 import cors from "cors";
-import { connectDb, initTables, syncDb } from "./db/connect.mjs";
+import { connectDb, initTables, syncDb } from "./db/connect.js";
 
-import authRoutes from "./routes/authRoutes.mjs";
-import codeRoutes from "./routes/codeRoutes.mjs";
+import authRoutes from "./routes/authRoutes.js";
+import codeRoutes from "./routes/codeRoutes.js";
 
 dotenv.config();
 
@@ -18,7 +18,7 @@ initTables(db);
 
 // This function should be run only once to create the tables
 // It should not be run in production as it has a chance to modify the database
-syncDb(db);
+// syncDb(db);
 
 app.use(express.json());
 app.use(cors());
