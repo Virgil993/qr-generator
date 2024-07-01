@@ -1,7 +1,7 @@
 export type Code = {
   id?: string;
   title: string;
-  codeText: string;
+  url: string;
   ownerId?: string;
   date?: Date;
 };

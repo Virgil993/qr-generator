@@ -1,7 +1,6 @@
 import { DataTypes, Sequelize } from "sequelize";
 import pg from "pg";
 import { CodeModel } from "../models/code.mjs";
-import { TrackingModel } from "../models/tracking.mjs";
 import { ActiveSessionModel } from "../models/activeSession.mjs";
 import { UserModel } from "../models/user.mjs";
 
@@ -31,7 +30,7 @@ export function initTables(db) {
       },
       title: DataTypes.STRING(512),
       ownerId: DataTypes.STRING(512),
-      codeText: DataTypes.STRING(1024),
+      url: DataTypes.STRING(1024),
       date: DataTypes.DATE,
     },
 
@@ -40,26 +39,6 @@ export function initTables(db) {
 
       modelName: "CodeModel",
       tableName: "codes",
-    }
-  );
-
-  TrackingModel.init(
-    {
-      id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true,
-      },
-      codeId: DataTypes.STRING(512),
-      date: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
-    },
-    {
-      sequelize: db,
-      modelName: "TrackingModel",
-      tableName: "tracking",
     }
   );
 

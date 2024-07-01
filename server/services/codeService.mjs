@@ -18,14 +18,14 @@ export const getAllCodes = async (req, res) => {
 
 export const createCode = async (req, res) => {
   const userId = req.session.userId;
-  const { title, codeText } = req.body;
+  const { title, url } = req.body;
 
-  if (!title || !codeText) {
+  if (!title || !url) {
     res.status(400).json({ error: "Missing required fields" });
     return;
   }
 
-  const isValidUrl = validator.isURL(codeText, {
+  const isValidUrl = validator.isURL(url, {
     require_protocol: true,
     protocols: ["http", "https"],
   });
@@ -37,7 +37,7 @@ export const createCode = async (req, res) => {
 
   const code = await CodeModel.create({
     title,
-    codeText,
+    url,
     ownerId: userId,
   }).catch((err) => {
     console.error(err);
@@ -69,9 +69,9 @@ export const getCode = async (req, res) => {
 export const updateCode = async (req, res) => {
   const userId = req.session.userId;
   const { id } = req.params;
-  const { title, codeText } = req.body;
+  const { title, url } = req.body;
 
-  if (!title || !codeText) {
+  if (!title || !url) {
     res.status(400).json({ error: "Missing required fields" });
     return;
   }
@@ -85,7 +85,7 @@ export const updateCode = async (req, res) => {
     res.status(404).json({ error: "Code not found" });
     return;
   }
-  code.set({ title, codeText });
+  code.set({ title, url });
   await code.save().catch((err) => {
     console.error(err);
     res.status(500).json({ error: "Failed to update code" });

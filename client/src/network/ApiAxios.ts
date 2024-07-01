@@ -35,16 +35,13 @@ export const logout = async () => await instance.post("/auth/logout");
 
 export const getAllCodes = async () => await instance.get("/codes");
 
-export const createCode = async (title: string, codeText: string) =>
-  await instance.post("/codes", { title, codeText });
+export const createCode = async (title: string, url: string) =>
+  await instance.post("/codes", { title, url });
 
 export const getCode = async (id: string) => await instance.get(`/codes/${id}`);
 
-export const updateCode = async (id: string, title: string, codeText: string) =>
-  await instance.put(`/codes/${id}`, { title, codeText });
+export const updateCode = async (id: string, title: string, url: string) =>
+  await instance.put(`/codes/${id}`, { title, url });
 
 export const deleteCode = async (id: string) =>
   await instance.delete(`/codes/${id}`);
-
-export const getTrackingData = async (codeId: string) =>
-  await instance.get(`/track/data/${codeId}`);

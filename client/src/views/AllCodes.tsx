@@ -29,9 +29,6 @@ import { AxiosError } from "axios";
 export default function AllCodes() {
   const navigate = useNavigate();
 
-  const trackingURL = import.meta.env.VITE_TRACKING_URL
-    ? import.meta.env.VITE_TRACKING_URL
-    : "";
   const [codes, setCodes] = useState<Code[]>([]);
   const [codesImages, setCodesImages] = useState<string[]>([]);
   const [modalAddCode, setModalAddCode] = useState(false);
@@ -49,8 +46,7 @@ export default function AllCodes() {
   const [alertErrorMessage, setAlertErrorMessage] = useState<string>("");
 
   const [codeTitle, setCodeTitle] = useState("");
-  const [codeText, setCodeText] = useState("");
-  const [generatedCode, setGeneratedCode] = useState("");
+  const [url, setUrl] = useState("");
 
   useEffect(() => {
     const fetchCodes = async () => {
@@ -71,7 +67,7 @@ export default function AllCodes() {
         setCodes(resCodes);
         const images = await Promise.all(
           resCodes.map(async (code: Code) => {
-            const res = await QRcode.toDataURL(trackingURL + "/" + code.id);
+            const res = await QRcode.toDataURL(code.url);
             return res;
           })
         );
@@ -82,7 +78,7 @@ export default function AllCodes() {
     if (codesLoading) {
       fetchCodes();
     }
-  }, [codesLoading, codes, codesImages, alertErrorMessage, trackingURL]);
+  }, [codesLoading, codes, codesImages, alertErrorMessage]);
 
   async function handleDelete(id: string) {
     setDeleteCodeLoading(true);
@@ -101,23 +97,6 @@ export default function AllCodes() {
     setDeleteCodeLoading(false);
   }
 
-  async function generateCode(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    if (!codeText) {
-      setErrorText("Text is mandatory");
-      return;
-    }
-    const isValidUrl = validator.isURL(codeText, {
-      protocols: ["http", "https"],
-      require_protocol: true,
-    });
-    if (!isValidUrl) {
-      setErrorModal("The code text is not a valid URL");
-      return;
-    }
-    const generatedCode = await QRcode.toDataURL(codeText);
-    setGeneratedCode(generatedCode);
-  }
 
   async function handleAdd(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -125,12 +104,16 @@ export default function AllCodes() {
       setErrorTitle("Title is mandatory");
       return;
     }
-    if (!codeText) {
-      setErrorText("Text is mandatory");
+    if (!url) {
+      setErrorText("URL is mandatory");
+      return;
+    }
+    if (!validator.isURL(url)) {
+      setErrorText("URL is not valid");
       return;
     }
     setAddCodeLoading(true);
-    const res = await createCode(codeTitle, codeText);
+    const res = await createCode(codeTitle, url);
     if (res instanceof AxiosError) {
       setErrorModal(
         `${
@@ -142,13 +125,12 @@ export default function AllCodes() {
     }
     if (res.data) {
       const generatedCode = await QRcode.toDataURL(
-        trackingURL + "/" + res.data.id
+        res.data.url
       );
       setCodes([...codes, res.data]);
       setCodesImages([...codesImages, generatedCode]);
       setCodeTitle("");
-      setCodeText("");
-      setGeneratedCode("");
+      setUrl("");
       toggleModalAddCode();
     }
     setAddCodeLoading(false);
@@ -157,7 +139,7 @@ export default function AllCodes() {
   async function handleDownload(id: string) {
     const code = codes.find((code) => code.id === id);
     if (code) {
-      const url = await QRcode.toDataURL(trackingURL + "/" + code.id);
+      const url = await QRcode.toDataURL(code.url);
       // Create an anchor element dynamically
       const a = document.createElement("a");
       a.href = url;
@@ -194,37 +176,22 @@ export default function AllCodes() {
             </div>
             <span className="text-danger">{errorText}</span>
             <div className="mb-3">
-              <label>Code Text</label>
+              <label>Code URL</label>
               <Input
                 className="form-control"
-                placeholder="Text"
-                autoComplete="Text"
-                value={codeText}
+                placeholder="URL"
+                autoComplete="URL"
+                value={url}
                 onChange={(e) => {
-                  setCodeText(e.target.value);
+                  setUrl(e.target.value);
                   setErrorText("");
                   setErrorModal("");
                 }}
               />
             </div>
             <span className="text-danger">{errorModal}</span>
-            {generatedCode ? (
-              <div className="mb-3 d-flex flex-column">
-                <label className="mb-2">Code</label>
-                <img src={generatedCode} style={{ width: "50%" }} alt="N/A" />
-              </div>
-            ) : (
-              <></>
-            )}
           </ModalBody>
           <ModalFooter>
-            <Button
-              color="primary"
-              onClick={(e) => generateCode(e)}
-              type="submit"
-            >
-              Generate code
-            </Button>
             <Button color="primary" onClick={(e) => handleAdd(e)} type="submit">
               {addCodeLoading ? (
                 <ClockLoader
@@ -267,7 +234,7 @@ export default function AllCodes() {
                       <div key={code.id} className="mb-3">
                         <p className="mb-0 d-flex flex-column">
                           <span className="h4">Code title: {code.title}</span>
-                          <span className="h4">Code text: {code.codeText}</span>
+                          <span className="h4">Code URL: {code.url}</span>
                         </p>
                         <div className="mb-3">
                           <img

@@ -11,7 +11,6 @@ import AllCodes from "./views/AllCodes";
 import Auth from "./layouts/Auth";
 import Admin from "./layouts/Admin";
 import ViewCode from "./views/ViewCode";
-import Guest from "./views/Guest";
 
 export default function App() {
   return (
@@ -22,7 +21,6 @@ export default function App() {
           path={`/auth/register`}
           element={<Auth element={<Register />} />}
         />
-        <Route path={`/auth/guest`} element={<Auth element={<Guest />} />} />
         <Route
           path={`/admin/all-codes`}
           element={<Admin element={<AllCodes />} />}
