@@ -3,6 +3,7 @@ import pg from "pg";
 import { CodeModel } from "../models/code";
 import { ActiveSessionModel } from "../models/activeSession";
 import { UserModel } from "../models/user";
+import { TrackModel } from "../models/track";
 
 // This function creates a new Sequelize instance and returns it
 export function connectDb() {
@@ -80,6 +81,30 @@ export function initTables(db: Sequelize) {
       sequelize: db,
       modelName: "UserModel",
       tableName: "users",
+    }
+  );
+  TrackModel.init(
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+      },
+      codeId: {
+        type: DataTypes.STRING(1024),
+        allowNull: false,
+      },
+      date: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
+    },
+
+    {
+      sequelize: db,
+
+      modelName: "TrackModel",
+      tableName: "track",
     }
   );
 }

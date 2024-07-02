@@ -6,6 +6,7 @@ import { connectDb, initTables, syncDb } from "./db/connect";
 
 import authRoutes from "./routes/authRoutes";
 import codeRoutes from "./routes/codeRoutes";
+import trackRoutes from "./routes/trackRoutes";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/auth", authRoutes);
 app.use("/codes", codeRoutes);
+app.use("/track", trackRoutes);
 
 // You don't need to listen to the port when using serverless functions in production
 if (process.env.NODE_ENV === "dev") {
