@@ -1,8 +1,8 @@
 import { DataTypes, Sequelize } from "sequelize";
 import pg from "pg";
-import { CodeModel } from "../models/code.js";
-import { ActiveSessionModel } from "../models/activeSession.js";
-import { UserModel } from "../models/user.js";
+import { CodeModel } from "../models/code";
+import { ActiveSessionModel } from "../models/activeSession";
+import { UserModel } from "../models/user";
 
 export function connectDb() {
   const sequelize = new Sequelize(process.env.POSTGRES_URL || "", {

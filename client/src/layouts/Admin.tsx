@@ -1,8 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { checkToken } from "../network/ApiAxios";
+import { Outlet } from "react-router-dom";
 
-export default function Admin(props: { element: React.ReactNode }) {
+export default function Admin() {
   const navigate = useNavigate();
   React.useEffect(() => {
     if (localStorage.getItem("apiToken") === null) {
@@ -22,5 +23,9 @@ export default function Admin(props: { element: React.ReactNode }) {
     }
     checkUserAuth();
   }, [navigate]);
-  return <>{props.element}</>;
+  return (
+    <>
+      <Outlet />
+    </>
+  );
 }

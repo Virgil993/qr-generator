@@ -16,19 +16,14 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path={`/auth/login`} element={<Auth element={<Login />} />} />
-        <Route
-          path={`/auth/register`}
-          element={<Auth element={<Register />} />}
-        />
-        <Route
-          path={`/admin/all-codes`}
-          element={<Admin element={<AllCodes />} />}
-        />
-        <Route
-          path={`/admin/view-code/:codeId`}
-          element={<Admin element={<ViewCode />} />}
-        />
+        <Route path={`/auth`} element={<Auth />}>
+          <Route path={`/auth/login`} element={<Login />} />
+          <Route path={`/auth/register`} element={<Register />} />
+        </Route>
+        <Route path={`/admin`} element={<Admin />}>
+          <Route path={`/admin/all-codes`} element={<AllCodes />} />
+          <Route path={`/admin/view-code/:id`} element={<ViewCode />} />
+        </Route>
 
         <Route path="*" element={<Navigate to="/auth/login" />} />
       </Routes>

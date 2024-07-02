@@ -17,7 +17,8 @@ instance.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       localStorage.clear();
-      window.location.href = "/auth/login";
+      if (window.location.pathname !== "/auth/login")
+        window.location.replace("/auth/login");
     }
     return error;
   }

@@ -1,5 +1,5 @@
-import esbuild from "esbuild";
-import esbuildPluginTsc from "esbuild-plugin-tsc";
+const esbuild = require("esbuild");
+const esbuildPluginTsc = require("esbuild-plugin-tsc");
 
 esbuild
   .build({

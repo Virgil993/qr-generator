@@ -1,7 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
-export default function Auth(props: { element: React.ReactNode }) {
+export default function Auth() {
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -10,5 +11,9 @@ export default function Auth(props: { element: React.ReactNode }) {
     }
   }, [navigate]);
 
-  return <>{props.element}</>;
+  return (
+    <>
+      <Outlet />
+    </>
+  );
 }

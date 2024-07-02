@@ -1,19 +1,28 @@
-import { ActiveSessionModel } from "../models/activeSession.js";
+import { NextFunction, Request, Response } from "express";
+import { ActiveSessionModel } from "../models/activeSession";
 import Jwt from "jsonwebtoken";
 
-export const checkActiveSession = async (req: any, res: any, next: any) => {
+export interface AuthenticatedRequest extends Request {
+  session?: {
+    userId: string;
+  };
+}
+
+export const checkActiveSession = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
   const token = req.headers.authorization;
   if (!token) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   try {
     Jwt.verify(token, process.env.JWT_SECRET || "secret");
   } catch (error) {
     console.error(error);
-    res.status(401).json({ error: "Unauthorized" });
-    return;
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   const activeSession = await ActiveSessionModel.findOne({
@@ -23,8 +32,7 @@ export const checkActiveSession = async (req: any, res: any, next: any) => {
     return null;
   });
   if (!activeSession) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
+    return res.status(401).json({ error: "Unauthorized" });
   }
   req.session = { userId: activeSession.userId };
   next();
