@@ -18,7 +18,7 @@ initTables(db);
 
 // This function should be run only once to create the tables
 // It should not be run in production as it has a chance to modify the database
-// syncDb(db);
+syncDb(db);
 
 app.use(express.json());
 app.use(cors());
@@ -27,8 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/auth", authRoutes);
 app.use("/codes", codeRoutes);
 
-// Define your routes here
-
+// You don't need to listen to the port when using serverless functions in production
 if (process.env.NODE_ENV === "dev") {
   app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

@@ -4,6 +4,7 @@ import { CodeModel } from "../models/code";
 import { ActiveSessionModel } from "../models/activeSession";
 import { UserModel } from "../models/user";
 
+// This function creates a new Sequelize instance and returns it
 export function connectDb() {
   const sequelize = new Sequelize(process.env.POSTGRES_URL || "", {
     dialect: "postgres",
@@ -20,6 +21,7 @@ export function connectDb() {
   return sequelize;
 }
 
+// This function initializes the tables in the database
 export function initTables(db: Sequelize) {
   CodeModel.init(
     {
@@ -82,6 +84,7 @@ export function initTables(db: Sequelize) {
   );
 }
 
+// This function synchronizes the database
 export async function syncDb(db: Sequelize) {
   await db.sync();
 }
