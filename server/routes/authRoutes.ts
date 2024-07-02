@@ -18,18 +18,12 @@ router.post("/register", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  if (
-    !email.toString().match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)
-  ) {
+  if (!validator.isEmail(email)) {
     return res.status(400).json({ error: "Invalid email" });
   }
 
-  try {
-    validator.isStrongPassword(password);
-  } catch (error: any) {
-    return res
-      .status(400)
-      .json({ error: error.message ?? "Password is not strong enough" });
+  if (!validator.isStrongPassword(password)) {
+    return res.status(400).json({ error: "Password is not strong enough" });
   }
 
   const userExists = await UserModel.findOne({ where: { email } }).catch(
@@ -73,9 +67,7 @@ router.post("/login", async (req: Request, res: Response) => {
     return res.status(401).json({ error: "Email or password incorect" });
   }
 
-  if (
-    !email.toString().match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)
-  ) {
+  if (!validator.isEmail(email)) {
     return res.status(401).json({ error: "Email or password incorect" });
   }
 
