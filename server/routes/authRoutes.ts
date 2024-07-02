@@ -42,7 +42,7 @@ router.post("/register", async (req: Request, res: Response) => {
     return null;
   });
   if (!hashedPassword) {
-    return res.status(500).json({ error: "Failed to hash password" });
+    return res.status(500).json({ error: "Failed to create user" });
   }
   const user = await UserModel.create({
     name,
