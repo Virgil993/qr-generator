@@ -49,32 +49,8 @@ export default function AllCodes() {
   const [url, setUrl] = useState("");
 
   useEffect(() => {
-    const fetchCodes = async () => {
-      setCodesLoading(true);
-      const result = await getAllCodes();
-      if (result instanceof AxiosError) {
-        setAlertErrorMessage(
-          `Unexpected error: ${
-            result.response?.data.error
-              ? result.response?.data.error
-              : "Please check the backend logs in the project dashboard - https://app.genez.io."
-          }`
-        );
-        return;
-      }
-      if (result?.data) {
-        const resCodes = result.data;
-        setCodes(resCodes);
-        const images = await Promise.all(
-          resCodes.map(async (code: Code) => {
-            const res = await QRcode.toDataURL(code.url);
-            return res;
-          })
-        );
-        setCodesImages(images);
-        setCodesLoading(false);
-      }
-    };
+    // TODO 15: Implement the fetchCodes function to retrieve all codes
+    const fetchCodes = async () => {};
     if (codesLoading) {
       fetchCodes();
     }
@@ -97,44 +73,8 @@ export default function AllCodes() {
     setDeleteCodeLoading(false);
   }
 
-
-  async function handleAdd(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    if (!codeTitle) {
-      setErrorTitle("Title is mandatory");
-      return;
-    }
-    if (!url) {
-      setErrorText("URL is mandatory");
-      return;
-    }
-    if (!validator.isURL(url)) {
-      setErrorText("URL is not valid");
-      return;
-    }
-    setAddCodeLoading(true);
-    const res = await createCode(codeTitle, url);
-    if (res instanceof AxiosError) {
-      setErrorModal(
-        `${
-          res.response?.data.error
-            ? res.response?.data.error
-            : "Unexpected error: Please check the backend logs in the project dashboard - https://app.genez.io."
-        }`
-      );
-    }
-    if (res.data) {
-      const generatedCode = await QRcode.toDataURL(
-        res.data.url
-      );
-      setCodes([...codes, res.data]);
-      setCodesImages([...codesImages, generatedCode]);
-      setCodeTitle("");
-      setUrl("");
-      toggleModalAddCode();
-    }
-    setAddCodeLoading(false);
-  }
+  // TODO 16: Implement the handleAdd function to add a new code
+  async function handleAdd(e: React.MouseEvent<HTMLButtonElement>) {}
 
   async function handleDownload(id: string) {
     const code = codes.find((code) => code.id === id);

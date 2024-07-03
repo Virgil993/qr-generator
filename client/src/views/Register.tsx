@@ -18,35 +18,8 @@ export default function Register() {
 
   const [error, setError] = useState("");
 
-  async function handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    if (!email || !password || !passwordConfirmation || !name) {
-      setError("All fields are mandatory");
-      return;
-    }
-    if (password !== passwordConfirmation) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    setError("");
-    const user: User = {
-      email,
-      password,
-      name,
-    };
-    setLoading(true);
-    const res = await register(user);
-    
-    setLoading(false);
-    if (res instanceof AxiosError && res.response?.data.error) {
-      setError(res.response.data.error);
-      return;
-    }
-    if (res.status === 200) {
-      navigate("/auth/login");
-    }
-  }
+  // TODO 14: Implement the handleSubmit function for registering
+  async function handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {}
 
   return (
     <Container className="mt-5">
@@ -101,27 +74,27 @@ export default function Register() {
                     />
                   </div>
                   <div className="text-center">
-                                {loading ? (
-                                  <div className="d-flex justify-content-center">
-                                    <ClockLoader
-                                      color={colors.main}
-                                      loading={loading}
-                                      size={30}
-                                      aria-label="Loading Spinner"
-                                      data-testid="loader"
-                                    />
-                                  </div>
-                                ) : (
-                                  <Button
-                                    className="btn-submit"
-                                    type="submit"
-                                    color="primary"
-                                    onClick={(e) => handleSubmit(e)}
-                                  >
-                                    Submit
-                                  </Button>
-                                )}
-                              </div>
+                    {loading ? (
+                      <div className="d-flex justify-content-center">
+                        <ClockLoader
+                          color={colors.main}
+                          loading={loading}
+                          size={30}
+                          aria-label="Loading Spinner"
+                          data-testid="loader"
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        className="btn-submit"
+                        type="submit"
+                        color="primary"
+                        onClick={(e) => handleSubmit(e)}
+                      >
+                        Submit
+                      </Button>
+                    )}
+                  </div>
                   <div className="mt-2">
                     <span>
                       Already have an account? <a href="/auth/login">Login</a>

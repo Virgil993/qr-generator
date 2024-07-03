@@ -13,28 +13,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    if (!email || !password) {
-      setError("All fields are mandatory");
-      return;
-    }
-
-    setError("");
-
-    setLoading(true);
-    const res = await login(email, password);
-    setLoading(false);
-    if (res instanceof AxiosError && res.response?.data.error) {
-      setError(res.response.data.error);
-      return;
-    }
-    if (res.status === 200) {
-      localStorage.setItem("apiToken", res.data.token);
-      localStorage.setItem("userId", res.data.userId);
-      navigate("/admin/all-codes");
-    }
-  }
+  // TODO 13: Implement the handleSubmit function for logging in
+  async function handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {}
 
   return (
     <Container className="mt-5">
@@ -69,27 +49,27 @@ export default function Login() {
                     />
                   </div>
                   <div className="text-center">
-                                {loading ? (
-                                  <div className="d-flex justify-content-center">
-                                    <ClockLoader
-                                      color={colors.main}
-                                      loading={loading}
-                                      size={30}
-                                      aria-label="Loading Spinner"
-                                      data-testid="loader"
-                                    />
-                                  </div>
-                                ) : (
-                                  <Button
-                                    className="btn-submit"
-                                    type="submit"
-                                    color="primary"
-                                    onClick={(e) => handleSubmit(e)}
-                                  >
-                                    Submit
-                                  </Button>
-                                )}
-                              </div>
+                    {loading ? (
+                      <div className="d-flex justify-content-center">
+                        <ClockLoader
+                          color={colors.main}
+                          loading={loading}
+                          size={30}
+                          aria-label="Loading Spinner"
+                          data-testid="loader"
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        className="btn-submit"
+                        type="submit"
+                        color="primary"
+                        onClick={(e) => handleSubmit(e)}
+                      >
+                        Submit
+                      </Button>
+                    )}
+                  </div>
                   <div className="mt-2">
                     <span>
                       Don't have an account?{" "}

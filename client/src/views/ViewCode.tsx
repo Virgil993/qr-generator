@@ -92,47 +92,8 @@ export default function ViewCode() {
     setDeleteCodeLoading(false);
   }
 
-  async function handleEdit(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    if (!codeTitle) {
-      setErrorTitle("Title is mandatory");
-      return;
-    }
-    if (!url) {
-      setErrorText("Text is mandatory");
-      return;
-    }
-    const isValidUrl = validator.isURL(url, {
-      protocols: ["http", "https"],
-      require_protocol: true,
-    });
-    if (!isValidUrl) {
-      setErrorModal("The text is not a valid URL");
-      return;
-    }
-    setEditCodeLoading(true);
-    const res = await updateCode(code?.id || "", codeTitle, url);
-
-    if (res instanceof AxiosError) {
-      setAlertErrorMessage(
-        `Unexpected error: ${
-          res.response?.data.error
-            ? res.response?.data.error
-            : "Please check the backend logs in the project dashboard - https://app.genez.io."
-        }`
-      );
-      return;
-    }
-    if (res.data) {
-      const generatedCode = await QRcode.toDataURL(res.data.url);
-      setCode(res.data);
-      setCodeImage(generatedCode);
-      setCodeTitle("");
-      setUrl("");
-      toggleModalEditCode();
-    }
-    setEditCodeLoading(false);
-  }
+  // TODO 17: Implement the handleEdit function to edit a code
+  async function handleEdit(e: React.MouseEvent<HTMLButtonElement>) {}
 
   async function handleDownload() {
     if (code) {

@@ -29,20 +29,21 @@ export const checkToken = async () => await instance.get("/auth/check-token");
 export const register = async (user: User) =>
   await instance.post("/auth/register", user);
 
-export const login = async (email: string, password: string) =>
-  await instance.post("/auth/login", { email, password });
+//  TODO 8: Implement the login function to make a POST request to /auth/login
+export const login = async (email: string, password: string) => {};
 
 export const logout = async () => await instance.post("/auth/logout");
 
 export const getAllCodes = async () => await instance.get("/codes");
 
-export const createCode = async (title: string, url: string) =>
-  await instance.post("/codes", { title, url });
+// TODO 9: Implement the createCode function to make a POST request to /codes
+export const createCode = async (title: string, url: string) => {};
 
-export const getCode = async (id: string) => await instance.get(`/codes/${id}`);
+// TODO 10: Implement the getCode function to make a GET request to /codes/:id
+export const getCode = async (id: string) => {};
 
-export const updateCode = async (id: string, title: string, url: string) =>
-  await instance.put(`/codes/${id}`, { title, url });
+// TODO 11: Implement the updateCode function to make a PUT request to /codes/:id
+export const updateCode = async (id: string, title: string, url: string) => {};
 
-export const deleteCode = async (id: string) =>
-  await instance.delete(`/codes/${id}`);
+// TODO 12: Implement the deleteCode function to make a DELETE request to /codes/:id
+export const deleteCode = async (id: string) => {};
