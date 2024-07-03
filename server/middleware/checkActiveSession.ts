@@ -8,32 +8,9 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
+// TODO 3: Implement the checkActiveSession middleware
 export const checkActiveSession = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
-) => {
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  try {
-    Jwt.verify(token, process.env.JWT_SECRET || "secret");
-  } catch (error) {
-    console.error(error);
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  const activeSession = await ActiveSessionModel.findOne({
-    where: { token },
-  }).catch((err) => {
-    console.error(err);
-    return null;
-  });
-  if (!activeSession) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  req.session = { userId: activeSession.userId };
-  next();
-};
+) => {};

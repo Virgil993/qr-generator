@@ -25,112 +25,32 @@ router.get(
   }
 );
 
+// TODO 4: Implement the CREATE code route
 router.post(
   "/",
   checkActiveSession,
-  async (req: AuthenticatedRequest, res: any) => {
-    const userId = req.session!.userId;
-    const { title, url } = req.body;
-
-    if (!title || !url) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    const isValidUrl = validator.isURL(url, {
-      require_protocol: true,
-      protocols: ["http", "https"],
-    });
-
-    if (!isValidUrl) {
-      return res
-        .status(400)
-        .json({ error: "the code text is not a valid URL" });
-    }
-
-    const code = await CodeModel.create({
-      title,
-      url,
-      ownerId: userId,
-    }).catch((err) => {
-      console.error(err);
-      return null;
-    });
-    if (!code) {
-      return res.status(500).json({ error: "Failed to create code" });
-    }
-    res.json(code);
-  }
+  async (req: AuthenticatedRequest, res: any) => {}
 );
 
+// TODO 5: Implement the GET code by id route
 router.get(
   "/:id",
   checkActiveSession,
-  async (req: AuthenticatedRequest, res: Response) => {
-    const userId = req.session!.userId;
-    const { id } = req.params;
-    const code = await CodeModel.findOne({
-      where: { id, ownerId: userId },
-    }).catch((err) => {
-      console.error(err);
-      return null;
-    });
-    if (!code) {
-      return res.status(404).json({ error: "Code not found" });
-    }
-    res.json(code);
-  }
+  async (req: AuthenticatedRequest, res: Response) => {}
 );
 
+// TODO 6: Implement the UPDATE code by id route
 router.put(
   "/:id",
   checkActiveSession,
-  async (req: AuthenticatedRequest, res: Response) => {
-    const userId = req.session!.userId;
-    const { id } = req.params;
-    const { title, url } = req.body;
-
-    if (!title || !url) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-    const code = await CodeModel.findOne({
-      where: { id, ownerId: userId },
-    }).catch((err) => {
-      console.error(err);
-      return null;
-    });
-    if (!code) {
-      return res.status(404).json({ error: "Code not found" });
-    }
-    code.set({ title, url });
-    await code.save().catch((err) => {
-      console.error(err);
-      return res.status(500).json({ error: "Failed to update code" });
-    });
-    res.json(code);
-  }
+  async (req: AuthenticatedRequest, res: Response) => {}
 );
 
+// TODO 7: Implement the DELETE code by id route
 router.delete(
   "/:id",
   checkActiveSession,
-  async (req: AuthenticatedRequest, res: Response) => {
-    const userId = req.session!.userId;
-    const { id } = req.params;
-    const code = await CodeModel.findOne({
-      where: { id, ownerId: userId },
-    }).catch((err) => {
-      console.error(err);
-      return null;
-    });
-    if (!code) {
-      return res.status(404).json({ error: "Code not found" });
-    }
-    await code.destroy().catch((err) => {
-      console.error(err);
-      return res.status(500).json({ error: "Failed to delete code" });
-    });
-    res.json({ success: true });
-  }
+  async (req: AuthenticatedRequest, res: Response) => {}
 );
 
 export default router;

@@ -60,54 +60,8 @@ router.post("/register", async (req: Request, res: Response) => {
   res.json(user);
 });
 
-router.post("/login", async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(401).json({ error: "Email or password incorect" });
-  }
-
-  if (!validator.isEmail(email)) {
-    return res.status(401).json({ error: "Email or password incorect" });
-  }
-
-  const user = await UserModel.findOne({ where: { email } }).catch((err) => {
-    console.error(err);
-    return null;
-  });
-  if (!user) {
-    return res.status(401).json({ error: "Email or password incorect" });
-  }
-  const isPasswordValid = await bcrypt
-    .compare(password, user.password)
-    .catch((err) => {
-      console.error(err);
-      return false;
-    });
-  if (!isPasswordValid) {
-    return res.status(401).json({ error: "Email or password incorect" });
-  }
-
-  const token = Jwt.sign(user.toJSON(), process.env.JWT_SECRET || "secret", {
-    expiresIn: 86400, // 1 week
-  });
-
-  const resSession = await ActiveSessionModel.create({
-    token: token,
-    userId: user.id,
-  }).catch((err) => {
-    console.error(err);
-    return null;
-  });
-  if (!resSession) {
-    return res.status(500).json({ error: "Failed to create session" });
-  }
-  user.password = "";
-  res.json({
-    user: user.toJSON(),
-    token: resSession.token,
-  });
-});
+// TODO 2: Implement the login route
+router.post("/login", async (req: Request, res: Response) => {});
 
 router.post(
   "/logout",
