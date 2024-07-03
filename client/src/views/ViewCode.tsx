@@ -18,12 +18,7 @@ import QRcode from "qrcode";
 import validator from "validator";
 import { ClockLoader } from "react-spinners";
 import { Code } from "../models/code";
-import {
-  deleteCode,
-  getCode,
-  logout,
-  updateCode,
-} from "../network/ApiAxios";
+import { deleteCode, getCode, logout, updateCode } from "../network/ApiAxios";
 import { AxiosError } from "axios";
 
 export default function ViewCode() {
@@ -33,12 +28,11 @@ export default function ViewCode() {
   const [codeImage, setCodeImage] = useState<string>();
   const [modalEditCode, setModalEditCode] = useState(false);
   const toggleModalEditCode = () => {
-    if(!modalEditCode){
+    if (!modalEditCode) {
       setCodeTitle(code?.title || "");
       setUrl(code?.url || "");
     }
     setModalEditCode(!modalEditCode);
-    
   };
   const [codeLoading, setCodeLoading] = useState(true);
   const [deleteCodeLoading, setDeleteCodeLoading] = useState(false);
@@ -51,12 +45,12 @@ export default function ViewCode() {
 
   const [codeTitle, setCodeTitle] = useState("");
   const [url, setUrl] = useState("");
-  const { codeId } = useParams<{ codeId?: string }>();
+  const { id } = useParams<{ id?: string }>();
 
   useEffect(() => {
     const fetchCode = async () => {
       setCodeLoading(true);
-      const result = await getCode(codeId || "");
+      const result = await getCode(id || "");
       if (result instanceof AxiosError) {
         setAlertErrorMessage(
           `Unexpected error: ${
@@ -69,9 +63,7 @@ export default function ViewCode() {
       }
       if (result.data) {
         setCode(result.data);
-        const image = await QRcode.toDataURL(
-          result.data?.url
-        );
+        const image = await QRcode.toDataURL(result.data?.url);
         setCodeImage(image);
         setCodeLoading(false);
       }
@@ -79,7 +71,7 @@ export default function ViewCode() {
     if (codeLoading) {
       fetchCode();
     }
-  }, [codeLoading, code, codeImage, alertErrorMessage, codeId]);
+  }, [codeLoading, code, codeImage, alertErrorMessage, id]);
 
   async function handleDelete(id: string) {
     setDeleteCodeLoading(true);
@@ -132,9 +124,7 @@ export default function ViewCode() {
       return;
     }
     if (res.data) {
-      const generatedCode = await QRcode.toDataURL(
-        res.data.url
-      );
+      const generatedCode = await QRcode.toDataURL(res.data.url);
       setCode(res.data);
       setCodeImage(generatedCode);
       setCodeTitle("");
