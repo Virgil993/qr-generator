@@ -123,15 +123,12 @@ router.post(
   async (req: AuthenticatedRequest, res: Response) => {
     const token = req.headers.authorization;
     // Delete active session
-    const resSession = await ActiveSessionModel.destroy({
+    await ActiveSessionModel.destroy({
       where: { token },
     }).catch((err) => {
       console.error(err);
       return null;
     });
-    if (!resSession) {
-      return res.status(500).json({ error: "Failed to logout" });
-    }
     res.json({ message: "Logged out" });
   }
 );
