@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import { useNavigate } from "react-router-dom";
 import { CodeService, Code } from "@genezio-sdk/qr-generator";
 import { ClockLoader } from "react-spinners";
+import DownloadModal from "./DownloadModal";
 
 interface CodeCardProps {
   photoUrl: string;
@@ -20,6 +21,7 @@ export default function CodeCardSingle(props: CodeCardProps) {
 
   const code = props.code;
   const [deleteCodeLoading, setDeleteCodeLoading] = useState(false);
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
 
   async function handleDownload() {
     const url = await QRCode.toDataURL(trackingURL + "?codeId=" + code.codeId);
@@ -51,6 +53,16 @@ export default function CodeCardSingle(props: CodeCardProps) {
 
   return (
     <Card className="ht-100 code-card-single">
+      <DownloadModal
+        codeText={code.codeText}
+        codeTitle={code.title}
+        phototUrl={props.photoUrl}
+        trackUrl={trackingURL + "?codeId=" + code.codeId}
+        isOpen={downloadModalOpen}
+        toggle={() => {
+          setDownloadModalOpen(!downloadModalOpen);
+        }}
+      />
       <Row className="card-top p-3">
         <div className="card-photo-wrapper">
           <img className="card-photo" src={props.photoUrl} alt="code" />

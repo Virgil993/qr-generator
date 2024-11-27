@@ -12,6 +12,19 @@ import { useNavigate } from "react-router-dom";
 import QRcode from "qrcode";
 import validator from "validator";
 import { colors } from "../assets/utils/colors";
+import Select from "react-select";
+
+export enum ImageType {
+  Png = "image/png",
+  Jpeg = "image/jpeg",
+  Webp = "image/webp",
+}
+
+const reactSelectOptions = [
+  { value: ImageType.Png, label: "PNG" },
+  { value: ImageType.Jpeg, label: "JPEG" },
+  { value: ImageType.Webp, label: "WEBP" },
+];
 
 export default function Guest() {
   const navigate = useNavigate();
@@ -21,7 +34,10 @@ export default function Guest() {
 
   const [codeTitle, setCodeTitle] = useState("");
   const [codeText, setCodeText] = useState("");
+  const [imageType, setImageType] = useState<ImageType>(ImageType.Png);
   const [generatedCode, setGeneratedCode] = useState("");
+  const [imageQuality, setImageQuality] = useState(0.5);
+  const [scale, setScale] = useState(1);
 
   async function generateCode(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -60,11 +76,30 @@ export default function Guest() {
       return;
     }
 
-    const url = await QRcode.toDataURL(codeText);
+    const url = await QRcode.toDataURL(codeText, {
+      type: imageType,
+      rendererOpts: {
+        quality: imageQuality,
+      },
+      scale: scale,
+    });
     // Create an anchor element dynamically
     const a = document.createElement("a");
     a.href = url;
-    a.download = `qrcode-${codeTitle}.png`; // Set the filename for the downloaded image
+
+    switch (imageType) {
+      case ImageType.Png:
+        a.download = `${codeTitle}.png`;
+        break;
+      case ImageType.Jpeg:
+        a.download = `${codeTitle}.jpeg`;
+        break;
+      case ImageType.Webp:
+        a.download = `${codeTitle}.webp`;
+        break;
+      default:
+        a.download = `${codeTitle}.png`;
+    }
 
     // Programmatically click the anchor element to trigger the download
     a.click();
@@ -118,6 +153,50 @@ export default function Guest() {
                     setErrorText("");
                   }}
                 />
+              </div>
+              <div className="mb-3 form-guest-div">
+                <label>Image Type</label>
+                <Select
+                  className="mt-3"
+                  options={reactSelectOptions}
+                  value={reactSelectOptions.find(
+                    (option) => option.value === imageType
+                  )}
+                  onChange={(option) => {
+                    if (option) {
+                      setImageType(option.value);
+                    }
+                  }}
+                  isMulti={false}
+                  isSearchable={false}
+                />
+              </div>
+              <div className="mb-3 form-guest-div">
+                <label>Image Quality</label>
+                <Input
+                  name="imageQuality"
+                  type="range"
+                  value={imageQuality}
+                  min={0}
+                  max={1}
+                  onChange={(e) => setImageQuality(parseFloat(e.target.value))}
+                  step={0.01}
+                ></Input>
+              </div>
+              <div>
+                <label>Scale</label>
+                <div className="p-1 m-1" style={{ fontSize: 13 }}>
+                  <b>number of pixels per block</b>
+                </div>
+                <Input
+                  name="scale"
+                  type="range"
+                  value={scale}
+                  min={1}
+                  max={30}
+                  onChange={(e) => setScale(parseInt(e.target.value))}
+                ></Input>
+                <p>Value {scale}</p>
               </div>
               {generatedCode ? (
                 <div className="mb-3 mt-3 form-guest-div d-flex flex-column justify-content-center align-items-center">
